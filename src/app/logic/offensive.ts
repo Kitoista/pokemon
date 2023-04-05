@@ -16,7 +16,7 @@ export class Offensive {
         const highscores: MovesetHighscore[] = [];
         
         movesets.filter(moveset => {
-            return mustHaveAttacks.every(attack => moveset.includes(attack));
+            return mustHaveAttacks.every(attack => moveset.find(move => move.type === attack.type));
         }).forEach(moveset => {
             let score = 0;
             const brackets = new Brackets();
