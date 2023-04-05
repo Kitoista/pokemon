@@ -1,0 +1,37 @@
+<div class="moveset-info" *ngIf="moveset">
+    <h3>Chosen moveset:</h3>
+    <div>
+        <div *ngFor="let move of moveset.moveset" class="type-icon type-{{move.type.name | lowercase}}">
+            {{ move.type.name }}
+        </div>
+    </div>
+
+    <h3>Effectiveness:</h3>
+
+    <span>
+        <span class="effectiveness x6" title="x6">{{ moveset.brackets[6] / allTypes.length | percent }} </span>
+        <span class="effectiveness x4" title="x4">{{ moveset.brackets[4] / allTypes.length | percent }} </span>
+        <span class="effectiveness x3" title="x3">{{ moveset.brackets[3] / allTypes.length | percent }} </span>
+        <span class="effectiveness x2" title="x2">{{ moveset.brackets[2] / allTypes.length | percent }} </span>
+        <span class="effectiveness x15" title="x1.5">{{ moveset.brackets['1.5'] / allTypes.length | percent }} </span>
+        <span class="effectiveness x1" title="x1">{{ moveset.brackets[1] / allTypes.length | percent }} </span>
+        <span class="effectiveness x075" title="x0.75">{{ moveset.brackets['0.75'] / allTypes.length | percent }} </span>
+        <span class="effectiveness x05" title="x0.5">{{ moveset.brackets['0.5'] / allTypes.length | percent }} </span>
+        <span class="effectiveness x0375" title="x0.375">{{ moveset.brackets['0.375'] / allTypes.length | percent }} </span>
+        <span class="effectiveness x025" title="x0.25">{{ moveset.brackets['0.25'] / allTypes.length | percent }} </span>
+        <span class="effectiveness x0" title="x0">{{ moveset.brackets[0] / allTypes.length | percent }} </span>
+    </span>
+
+    <h3>Matchups:</h3>
+
+    <div class="matchups">
+        <div *ngFor="let matchup of matchups">
+            <span class="effectiveness number" [ngClass]="'x' + ((matchup.effect.multiplier) + '').replace('.', '')">x{{ matchup.effect.multiplier }}</span>
+            <span class="type-icon type-{{ matchup.effect.type.name | lowercase }} number" [title]="matchup.effect.type.name">{{ matchup.effect.dmg }}</span>
+            =>
+            <div *ngFor="let type of matchup.defender" class="type-icon type-{{type.name | lowercase}}">
+                {{ type.name }}
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,1 +1,198 @@
 /* You can add global styles to this file, and also import other style files */
+body {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+h3 {
+    margin-block-start: 0.5em;
+    margin-block-end: 0.5em;
+}
+
+.type-icon {
+    display: inline-block;
+    width: 66px;
+    margin-bottom: 4px;
+    background: #dbdbdb;
+    border: 1px solid #a3a3a3;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, .2);
+    color: #fff;
+    font-size: .75rem;
+    font-weight: normal;
+    line-height: 1.5rem;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, .7);
+    text-transform: uppercase;
+    transition: opacity .4s;
+    cursor: pointer;
+    margin: 4px;
+
+    &.chosen {
+        box-shadow: 0 0 10px 3px black;
+    }
+
+    &.chosen2 {
+        box-shadow: 0 0 10px 3px red;
+    }
+
+    input {
+        width: 25px;
+    }
+
+    &.number {
+        width: 66px;
+    }
+}
+
+.type-normal {
+    background-color: #aa9;
+}
+
+.type-fire {
+    background-color: #f42
+}
+
+.type-water {
+    background-color: #39f
+}
+
+.type-electric {
+    background-color: #fc3
+}
+
+.type-grass {
+    background-color: #7c5
+}
+
+.type-ice {
+    background-color: #6cf
+}
+
+.type-fighting {
+    background-color: #b54
+}
+
+.type-poison {
+    background-color: #a59
+}
+
+.type-ground {
+    background-color: #db5
+}
+
+.type-flying {
+    background-color: #89f
+}
+
+.type-psychic {
+    background-color: #f59
+}
+
+.type-bug {
+    background-color: #ab2
+}
+
+.type-rock {
+    background-color: #ba6
+}
+
+.type-ghost {
+    background-color: #66b
+}
+
+.type-dragon {
+    background-color: #76e
+}
+
+.type-dark {
+    background-color: #754
+}
+
+.type-steel {
+    background-color: #aab
+}
+
+.type-fairy {
+    background-color: #e9e
+}
+
+button {
+    height: 32px;
+    border-radius: 5px;
+    padding: 5px 15px 5px 15px;
+    font-size: 16px;
+    color: #eee;
+    background-color: #777;
+    cursor: pointer;
+    margin-right: 5px;
+
+    &.small {
+        padding: 0px 9px 0px 9px;
+        height: 20px;
+        font-size: 14px;
+    }
+    
+    &.primary {
+        background-color: #39f;
+    }
+
+    &.success {
+        background-color: #4e9a06;
+    }
+
+    &.danger {
+        background-color: #a40000;
+    }
+}
+
+.effectiveness {
+    display: inline-block;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-bottom: 4px;
+    background: #dbdbdb;
+    border: 1px solid #a3a3a3;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, .2);
+    color: #fff;
+    font-size: .75rem;
+    font-weight: normal;
+    line-height: 1.5rem;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, .7);
+    text-transform: uppercase;
+    transition: opacity .4s;
+    cursor: pointer;
+    margin: 4px;
+    width: 30px;
+    text-transform: lowercase;
+
+    &.x4, &.x6 {
+        background-color: #73d216;
+    }
+    &.x2, &.x3 {
+        background-color: #4e9a06;
+    }
+    &.x1, &.x15 {
+        color:rgba(0, 0, 0, .7);
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, .3);
+    }
+    &.x05, &.x075 {
+        background-color: #a40000;
+    }
+    &.x025, &.x0375 {
+        background-color: #7c0000;
+    }
+    &.x0 {
+        background-color: #2e3436;
+    }
+    &.x0375.number {
+        font-size: 0.6rem;
+    }
+}
+
+.vl {
+    margin-right: 5px;
+    padding-right: 5px;
+    border-right: 3px solid #2e3436;
+}

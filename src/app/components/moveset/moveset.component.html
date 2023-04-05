@@ -1,0 +1,18 @@
+<div class="moveset">
+    <div class="vl">
+        <div *ngFor="let move of highscore.moveset" class="type-icon type-{{move.type.name | lowercase}}">
+            {{ move.type.name }}
+        </div>
+    </div>
+
+    <span class="vl">
+        <span class="effectiveness x2" title="super effective">{{ (highscore.brackets[2] + highscore.brackets[3] + highscore.brackets[4] + highscore.brackets[6]) / allTypes.length | percent }} </span>
+        <span class="effectiveness x1" title="effective">{{ (highscore.brackets[1] + highscore.brackets['1.5']) / allTypes.length | percent }} </span>
+        <span class="effectiveness x05" title="not very effective or immune">{{ (highscore.brackets['0.5'] + highscore.brackets['0.25'] + highscore.brackets['0.75'] + highscore.brackets['0.375'] + highscore.brackets[0]) / allTypes.length | percent }} </span>
+    </span>
+    
+    <span class="vl">
+        <span class="effectiveness x1">{{ highscore.avgEffect.dmg | number : '1.2-2'}}</span>
+    </span>
+    <button class="small" (click)="info()">></button>
+</div>

@@ -1,0 +1,47 @@
+<h3>Your pokemon's type(s):</h3>
+
+<div class="stab-types">
+    <span *ngFor="let type of typeList" class="type-icon type-{{type.name | lowercase}}"
+        [ngClass]="{ 'chosen': stabTypes.includes(type) }" (click)="toggleStabType(type)">
+        {{ type.name }}
+    </span>
+</div>
+
+<h3>Your pokemon can learn:</h3>
+
+<div class="attack-types">
+    <span *ngFor="let type of typeList" class="type-icon type-{{type.name | lowercase}}"
+        [class.chosen]="attackTypes.includes(type)"
+        [class.chosen2]="mustHaveAttackTypes.includes(type)">
+            <div (click)="toggleAttackType(type)"
+            (contextmenu)="toggleMustHaveAttackType($event, type)">
+                {{ type.name }}
+            </div>
+        <input [(ngModel)]="attackPowers[type.name]" type="text" maxlength="3" />
+    </span>
+</div>
+
+<h3>Your pokemon's relevant ability:</h3>
+<div class="abilities">
+    <button *ngFor="let possibleAbility of abilities"
+    class="small"
+    [ngClass]="{ success: chosenAbility === possibleAbility }"
+    (click)="chosenAbility = possibleAbility">{{ possibleAbility }}</button>
+
+</div>
+
+<div class="button-list">
+    <button (click)="reset()">Reset</button>
+    <button class="primary" (click)="calculate()">Calculate</button>
+    <button (click)="attackAmount = (attackAmount) % 5 + 1">{{ attackAmount }}</button>
+</div>
+
+<h3>You should choose this moves:</h3>
+
+<div *ngIf="movesets.length > 0; else emptyMovesets" class="results">
+    <poke-moveset *ngFor="let m of movesets" [highscore]="m"></poke-moveset>
+</div>
+
+<ng-template #emptyMovesets>
+    <div>Press Calculate to get smarter</div>
+</ng-template>
