@@ -1,5 +1,4 @@
-<h3>Your pokemon's type(s):</h3>
-
+<h3>Your Pokémon's type(s):</h3>
 <div class="stab-types">
     <span *ngFor="let type of typeList" class="type-icon type-{{type.name | lowercase}}"
         [ngClass]="{ 'chosen': stabTypes.includes(type) }" (click)="toggleStabType(type)">
@@ -7,8 +6,7 @@
     </span>
 </div>
 
-<h3>Your pokemon can learn:</h3>
-
+<h3>Your Pokémon can learn:</h3>
 <div class="attack-types">
     <span *ngFor="let type of typeList" class="type-icon type-{{type.name | lowercase}}"
         [class.chosen]="attackTypes.includes(type)"
@@ -21,13 +19,24 @@
     </span>
 </div>
 
-<h3>Your pokemon's relevant ability:</h3>
+<h3>Your Pokémon's relevant ability:</h3>
 <div class="abilities">
     <button *ngFor="let possibleAbility of abilities"
     class="small"
     [ngClass]="{ success: chosenAbility === possibleAbility }"
     (click)="chosenAbility = possibleAbility">{{ possibleAbility }}</button>
+</div>
 
+<h3>Other stuff:</h3>
+<div class="weathers">
+    <button *ngFor="let possibleWeather of weathers" class="small"
+        [ngClass]="{ success: chosenWeather === possibleWeather }" (click)="chosenWeather = possibleWeather">{{
+        possibleWeather }}</button>
+</div>
+<div class="terrains">
+    <button *ngFor="let possibleTerrain of terrains" class="small"
+        [ngClass]="{ success: chosenTerrain === possibleTerrain }" (click)="chosenTerrain = possibleTerrain">{{
+        possibleTerrain }}</button>
 </div>
 
 <div class="button-list">
@@ -37,7 +46,6 @@
 </div>
 
 <h3>You should choose this moves:</h3>
-
 <div *ngIf="movesets.length > 0; else emptyMovesets" class="results">
     <poke-moveset *ngFor="let m of movesets" [highscore]="m"></poke-moveset>
 </div>

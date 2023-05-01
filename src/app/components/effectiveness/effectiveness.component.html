@@ -1,0 +1,6 @@
+<span *ngIf="this.value === undefined" class="effectiveness" [ngClass]="xClass" [title]="title">
+    {{ sum(min, max) / allTypes.length | percent }}
+</span>
+<span *ngIf="this.value !== undefined" class="effectiveness number" [ngClass]="xClass">
+    {{ 'x' + this.value }}
+</span>

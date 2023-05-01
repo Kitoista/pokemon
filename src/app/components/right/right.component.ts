@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { SelectedMovesetService } from 'src/app/services/selected-moveset.service';
-import { Matchup, MovesetHighscore, allTypes } from 'src/app/logic/poke-type';
+import { Matchup, MovesetHighscore, allTypes, log } from 'src/app/logic/poke-type';
 
 @Component({
   selector: 'poke-right',
@@ -8,10 +8,8 @@ import { Matchup, MovesetHighscore, allTypes } from 'src/app/logic/poke-type';
   styleUrls: ['./right.component.scss']
 })
 export class RightComponent {
-  allTypes = allTypes;
-
   constructor(public selectedMovesetService: SelectedMovesetService) {}
- 
+
   get moveset(): MovesetHighscore | undefined {
     return this.selectedMovesetService.moveset;
   }

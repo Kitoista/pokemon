@@ -1,6 +1,6 @@
 import {
 NORMAL,FIRE,WATER,ELECTRIC,GRASS,ICE,FIGHTING,POISON,GROUND,FLYING,PSYCHIC,BUG,ROCK,GHOST,DRAGON,DARK,STEEL,FAIRY,
-PokeType, typeList, Types, dualTypes, allTypes, log, logObject, movesetAgainst, generateMovesets, singleTypeCounts, Brackets, MovesetHighscore, Ability, Attack, AttackEffect, Matchup
+PokeType, typeList, Types, dualTypes, allTypes, log, logObject, movesetAgainst, generateMovesets, singleTypeCounts, MovesetHighscore, Ability, Attack, AttackEffect, Matchup, Weather, Terrain, Brackets
 } from './poke-type';
 
 export const MyEvaluator = (damage: number, defender: PokeType[], stabTypes: PokeType[]): number => {
@@ -10,7 +10,7 @@ export const MyEvaluator = (damage: number, defender: PokeType[], stabTypes: Pok
 export class Offensive {
     evaluator: (damage: number, defender: PokeType[], stabTypes: PokeType[]) => number = MyEvaluator;
 
-    public getBestMovesets(stabTypes: PokeType[], ability: Ability, attacks?: Attack[], mustHaveAttacks: Attack[] = [], number = 4, topX = 10): MovesetHighscore[] {
+    public getBestMovesets(stabTypes: PokeType[], ability: Ability, attacks?: Attack[], mustHaveAttacks: Attack[] = [], number = 4, topX = 10, weather: Weather = 'None', terrain: Terrain = 'None'): MovesetHighscore[] {
         const movesets = generateMovesets(attacks, number);
 
         const highscores: MovesetHighscore[] = [];
@@ -19,12 +19,15 @@ export class Offensive {
             return mustHaveAttacks.every(attack => moveset.find(move => move.type === attack.type));
         }).forEach(moveset => {
             let score = 0;
-            const brackets = new Brackets();
+            const brackets: Brackets = {};
             const matchups: Matchup[] = [];
             const avgEffect: AttackEffect = { dmg: 0, multiplier: 0, type: NORMAL };
 
             allTypes.forEach(defender => {
-                const effect = movesetAgainst(moveset, defender, stabTypes, ability);
+                const effect = movesetAgainst(moveset, defender, stabTypes, ability, weather, terrain);
+                if (!brackets[effect.multiplier]) {
+                    brackets[effect.multiplier] = 0;
+                }
                 brackets[effect.multiplier] += 1;
                 score += this.evaluator(effect.dmg, defender, stabTypes);
                 avgEffect.dmg += effect.dmg;

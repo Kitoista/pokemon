@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { SelectedMovesetService } from 'src/app/services/selected-moveset.service';
 import { Offensive } from 'src/app/logic/offensive';
-import { Ability, Attack, MovesetHighscore, PokeType, abilities, log, typeList } from 'src/app/logic/poke-type';
+import { Ability, Attack, MovesetHighscore, PokeType, Terrain, Weather, abilities, log, terrains, typeList, weathers } from 'src/app/logic/poke-type';
 import { FormGroup, FormControl } from '@angular/forms';
 
 @Component({
@@ -16,9 +16,13 @@ export class LeftComponent {
   attackTypes: PokeType[] = [];
   mustHaveAttackTypes: PokeType[] = [];
   chosenAbility: Ability = 'None';
+  chosenWeather: Weather = 'None';
+  chosenTerrain: Terrain = 'None';
   attackAmount: number = 4;
   topX = 15;
   abilities = abilities;
+  weathers = weathers;
+  terrains = terrains;
 
   attackPowers: { [key in PokeType['name']]: string };
 
@@ -102,6 +106,6 @@ export class LeftComponent {
       power: Number.parseFloat(this.attackPowers[aType.name] || '1')
     }));
     
-    this.movesets = offensive.getBestMovesets(this.stabTypes, this.chosenAbility, attacks, mustHaveAttacks, this.attackAmount, this.topX);
+    this.movesets = offensive.getBestMovesets(this.stabTypes, this.chosenAbility, attacks, mustHaveAttacks, this.attackAmount, this.topX, this.chosenWeather, this.chosenTerrain);
   }
 }

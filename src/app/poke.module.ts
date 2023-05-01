@@ -7,13 +7,15 @@ import { PokeComponent } from './poke.component';
 import { MovesetComponent } from './components/moveset/moveset.component';
 import { LeftComponent } from './components/left/left.component';
 import { RightComponent } from './components/right/right.component';
+import { EffectivenessComponent } from './components/effectiveness/effectiveness.component';
 
 @NgModule({
   declarations: [
     PokeComponent,
     MovesetComponent,
     LeftComponent,
-    RightComponent
+    RightComponent,
+    EffectivenessComponent
   ],
   imports: [
     CommonModule,

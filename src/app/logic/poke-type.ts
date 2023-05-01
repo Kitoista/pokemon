@@ -1,3 +1,5 @@
+import { Type } from "@angular/compiler";
+
 export class PokeType {
     attack: AttackStats;
     defense: DefenseStats;
@@ -15,7 +17,7 @@ class AttackStats {
         // this.effectiveAgainst = typeList.filter(other => !this.strongAgainst.includes(other) && !this.weakAgainst.includes(other) && !this.noEffectAgainst.includes(other));
     }
 
-    damageAgainst(types: PokeType[], isStab: boolean, ability: Ability): number {
+    damageAgainst(types: PokeType[], isStab: boolean, ability: Ability, weather?: Weather, terrain?: Terrain): number {
         let re = 1;
         types.forEach(type => {
             if (this.strongAgainst.includes(type)) {
@@ -32,12 +34,31 @@ class AttackStats {
         if (isStab) {
             re *= 1.5;
         }
+        if (weather === 'Hars sunlight') {
+            if (this === FIRE.attack) {
+                re *= 1.5;
+            } else if (this === WATER.attack) {
+                re *= 0.5;
+            }
+        } else if (weather === 'Rain') {
+            if (this === FIRE.attack) {
+                re *= 0.5;
+            } else if (this === WATER.attack) {
+                re *= 1.5;
+            }
+        }
+        if (terrain === 'Electric' && this === ELECTRIC.attack) {
+            re *= 1.5;
+        } else if (terrain === 'Grassy' && this === GRASS.attack) {
+            re *= 1.5;
+        } else if (terrain === 'Misty' && this === DRAGON.attack) {
+            re *= 0.5;
+        }
         return re;
     }
 }
 
 class DefenseStats {
-    // effective: PokeType[];
     immune: PokeType[];
     superEffective: PokeType[];
     resists: PokeType[];
@@ -124,14 +145,14 @@ for (let i = 0; i < typeList.length; ++i) {
 
 export const allTypes = typeList.map(t => [t]).concat(dualTypes);
 
-export const movesetAgainst = (moveset: Attack[], defender: PokeType[], stabTypes: PokeType[], ability: Ability): AttackEffect => {
+export const movesetAgainst = (moveset: Attack[], defender: PokeType[], stabTypes: PokeType[], ability: Ability, weather: Weather, terrain: Terrain): AttackEffect => {
     let re: AttackEffect = {
         dmg: 0,
         multiplier: 0,
         type: NORMAL
     };
     moveset.forEach(attack => {
-        const multiplier = attack.type.attack.damageAgainst(defender, stabTypes.includes(attack.type), ability);
+        const multiplier = attack.type.attack.damageAgainst(defender, stabTypes.includes(attack.type), ability, weather, terrain);
         const dmg = multiplier * attack.power;
         if (dmg > re.dmg) {
             const type = attack.type;
@@ -291,18 +312,8 @@ export const singleTypeCounts = {
     FAIRY: 21
 }
 
-export class Brackets {
-    '0' = 0;
-    '0.25' = 0;
-    '0.375' = 0;
-    '0.5' = 0;
-    '0.75' = 0;
-    '1' = 0;
-    '1.5' = 0;
-    '2' = 0;
-    '3' = 0;
-    '4' = 0;
-    '6' = 0;
+export type Brackets = {
+    [multipler: number]: number;
 }
 
 export interface Matchup {
@@ -331,3 +342,20 @@ export interface AttackEffect {
     multiplier: number,
     type: PokeType
 }
+
+export const weathers = [
+    'None',
+    'Hars sunlight',
+    'Rain',
+    'Hail',
+    'Sandstorm'
+] as const;
+export type Weather = typeof weathers[number];
+
+export const terrains = [
+    'None',
+    'Electric',
+    'Grassy',
+    'Misty'
+] as const;
+export type Terrain = typeof terrains[number];
