@@ -1,55 +1,49 @@
-<h3>Your Pokémon's type(s):</h3>
-<div class="stab-types">
-    <span *ngFor="let type of typeList" class="type-icon type-{{type.name | lowercase}}"
-        [ngClass]="{ 'chosen': stabTypes.includes(type) }" (click)="toggleStabType(type)">
-        {{ type.name }}
-    </span>
+<div class="button-list">
+    <button class="" (click)="create()">New</button>
+    <button class="success" (click)="save()">Save [{{ loadedIndex === -1 ? 'N' : loadedIndex }}]</button>
+    <button class="" (click)="loadNext()">LoadNext</button>
+    <button class="" (click)="copy()">Copy</button>
+    <button class="danger" (click)="clear()">Delete</button>
+    <button class="black" (click)="clearAll()">Delete All [{{loadedNumber}}]</button>
 </div>
 
-<h3>Your Pokémon can learn:</h3>
-<div class="attack-types">
-    <span *ngFor="let type of typeList" class="type-icon type-{{type.name | lowercase}}"
-        [class.chosen]="attackTypes.includes(type)"
-        [class.chosen2]="mustHaveAttackTypes.includes(type)">
-            <div (click)="toggleAttackType(type)"
-            (contextmenu)="toggleMustHaveAttackType($event, type)">
-                {{ type.name }}
-            </div>
-        <input [(ngModel)]="attackPowers[type.name]" type="text" maxlength="3" />
-    </span>
+<div class="pokemon-row" *ngFor="let superPokemon of attackers">
+    <button class="delete small danger" (click)="deletePokemon(superPokemon)">X</button>
+    <pokemon [superPokemon]="superPokemon"></pokemon>
 </div>
 
-<h3>Your Pokémon's relevant ability:</h3>
-<div class="abilities">
-    <button *ngFor="let possibleAbility of abilities"
-    class="small"
-    [ngClass]="{ success: chosenAbility === possibleAbility }"
-    (click)="chosenAbility = possibleAbility">{{ possibleAbility }}</button>
-</div>
+<button class="small" (click)="addPokemon()">Add pokemon</button>
 
-<h3>Other stuff:</h3>
+<button (click)="maxAttackersNum = maxAttackersNum % 6 + 1">
+    {{maxAttackersNum}}
+</button>
+
+<h4>Context:</h4>
 <div class="weathers">
     <button *ngFor="let possibleWeather of weathers" class="small"
-        [ngClass]="{ success: chosenWeather === possibleWeather }" (click)="chosenWeather = possibleWeather">{{
-        possibleWeather }}</button>
+        [class.success]="context.weather === possibleWeather" (click)="context.weather = possibleWeather">
+        {{ possibleWeather }}
+    </button>
 </div>
 <div class="terrains">
     <button *ngFor="let possibleTerrain of terrains" class="small"
-        [ngClass]="{ success: chosenTerrain === possibleTerrain }" (click)="chosenTerrain = possibleTerrain">{{
-        possibleTerrain }}</button>
+        [class.success]="context.terrain === possibleTerrain" (click)="context.terrain = possibleTerrain">
+        {{ possibleTerrain }}
+    </button>
 </div>
+
+<h4>Opponent:</h4>
+<pokemon [superPokemon]="defender" [isDefender]="true"></pokemon>
 
 <div class="button-list">
-    <button (click)="reset()">Reset</button>
     <button class="primary" (click)="calculate()">Calculate</button>
-    <button (click)="attackAmount = (attackAmount) % 5 + 1">{{ attackAmount }}</button>
 </div>
 
-<h3>You should choose this moves:</h3>
-<div *ngIf="movesets.length > 0; else emptyMovesets" class="results">
-    <poke-moveset *ngFor="let m of movesets" [highscore]="m"></poke-moveset>
+<h4>This is your setup:</h4>
+<div *ngIf="evaluations.length > 0; else emptyEvaluations" class="results">
+    <poke-evaluation *ngFor="let evaluation of evaluations" [evaluation]="evaluation"></poke-evaluation>
 </div>
 
-<ng-template #emptyMovesets>
+<ng-template #emptyEvaluations>
     <div>Press Calculate to get smarter</div>
 </ng-template>

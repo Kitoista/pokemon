@@ -1,0 +1,129 @@
+<poke-accordion>
+    <ng-template #accordionTitle>
+        <input [(ngModel)]="superPokemon.name" type="text" placeholder="Pokémon's name">
+    </ng-template>
+
+    <ng-template #accordionBody>
+        <ng-container *ngIf="isDefender" [ngTemplateOutlet]="defendingStat"></ng-container>
+
+        <ng-container *ngIf="!isDefender" [ngTemplateOutlet]="attackingStat"></ng-container>
+        <ng-container *ngIf="!isDefender" [ngTemplateOutlet]="types"></ng-container>
+        <ng-container *ngIf="!isDefender" [ngTemplateOutlet]="moves"></ng-container>
+
+        <ng-container [ngTemplateOutlet]="ability"></ng-container>
+        
+        <ng-container *ngIf="!isDefender" [ngTemplateOutlet]="item"></ng-container>
+    </ng-template>
+</poke-accordion>
+
+<ng-template #defendingStat>
+    <h4>Defending stat (Def or SpDef)</h4>
+    <table>
+        <tr>
+            <th>Base</th>
+            <th>Nature</th>
+            <th>EV</th>
+            <th>Stage</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.defense.base" type="text" maxlength="3"
+                    placeholder="Base defending stat">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.defense.nature" type="text" maxlength="3" placeholder="Nature">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.defense.ev" type="text" maxlength="3" placeholder="EV">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.defense.stage" type="text" maxlength="3" placeholder="Stage">
+            </td>
+            <td>
+                {{ superPokemon.stats.defense.value }}
+            </td>
+        </tr>
+    </table>
+</ng-template>
+
+<ng-template #attackingStat>
+    <h4>Damaging stat (Atk or SpAtk)</h4>
+    <table>
+        <tr>
+            <th>Base</th>
+            <th>Nature</th>
+            <th>EV</th>
+            <th>Stage</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.attack.base" type="text" maxlength="3"
+                    placeholder="Base damaging stat">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.attack.nature" type="text" maxlength="3" placeholder="Nature">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.attack.ev" type="text" maxlength="3" placeholder="EV">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.attack.stage" type="text" maxlength="3" placeholder="Stage">
+            </td>
+            <td>
+                {{ superPokemon.stats.attack.value }}
+            </td>
+        </tr>
+    </table>
+</ng-template>
+
+<ng-template #types>
+    <h4>{{ superPokemon.name || 'Your Pokémon' }}'s type(s):</h4>
+            <div class="stab-types">
+                <span *ngFor="let type of typeList" class="type-icon type-{{type.name | lowercase}}"
+                    [ngClass]="{ 'chosen': stabTypes.includes(type) }" (click)="toggleStabType(type)">
+                    {{ type.name }}
+                </span>
+            </div>
+</ng-template>
+
+<ng-template #moves>
+    <h4>
+        {{ superPokemon.name || 'Your Pokémon' }} can learn:
+        <button (click)="superPokemon.numberOfAttacks = (superPokemon.numberOfAttacks) % 4 + 1">
+            {{superPokemon.numberOfAttacks}}
+        </button>
+    </h4>
+    <div class="attack-types">
+        <span *ngFor="let type of typeList" class="type-icon type-{{type.name | lowercase}}"
+            [class.chosen]="attackTypes.includes(type)" [class.chosen2]="mustHaveAttackTypes.includes(type)">
+            <div (click)="toggleAttackType(type)" (contextmenu)="toggleMustHaveAttackType($event, type)">
+                {{ type.name }}
+            </div>
+            <input [ngModel]="attackPowers[type.name]" (ngModelChange)="attackPowerChange(type, $event)" type="text" maxlength="3" />
+        </span>
+    </div>
+</ng-template>
+
+<ng-template #ability>
+    <h4>{{ superPokemon.name || 'Your Pokémon' }}'s relevant ability:</h4>
+            <div class="abilities">
+                <button *ngFor="let possibleAbility of abilities" class="small"
+                    [ngClass]="{ success: superPokemon.ability === possibleAbility }"
+                    (click)="superPokemon.ability = possibleAbility">
+                    {{ possibleAbility }}
+                </button>
+            </div>
+</ng-template>
+
+<ng-template #item>
+    <h4>{{ superPokemon.name || 'Your Pokémon' }}'s item:</h4>
+    <div class="items">
+        <button *ngFor="let possibleItem of items" class="small"
+            [ngClass]="{ success: superPokemon.item === possibleItem }"
+            (click)="superPokemon.item = possibleItem">
+            {{ possibleItem }}
+        </button>
+    </div>
+</ng-template>

@@ -8,14 +8,20 @@ import { MovesetComponent } from './components/moveset/moveset.component';
 import { LeftComponent } from './components/left/left.component';
 import { RightComponent } from './components/right/right.component';
 import { EffectivenessComponent } from './components/effectiveness/effectiveness.component';
+import { PokemonComponent } from './components/pokemon/pokemon.component';
+import { AccordionComponent } from './components/accordion/accordion.component';
+import { EvaluationComponent } from './components/evaluation/evaluation.component';
 
 @NgModule({
   declarations: [
     PokeComponent,
-    MovesetComponent,
+    // MovesetComponent,
+    EvaluationComponent,
     LeftComponent,
     RightComponent,
-    EffectivenessComponent
+    EffectivenessComponent,
+    PokemonComponent,
+    AccordionComponent
   ],
   imports: [
     CommonModule,

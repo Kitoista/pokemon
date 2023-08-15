@@ -1,0 +1,9 @@
+<div class="accordion" [class.closed]="!isOpen">
+    <div class="accordion-title">
+        <ng-container *ngTemplateOutlet="accordionTitle"></ng-container>
+        <div class="accordion-toggle" (click)="toggle()">></div>
+    </div>
+    <div class="accordion-body">
+        <ng-container *ngTemplateOutlet="accordionBody"></ng-container>
+    </div>
+</div>

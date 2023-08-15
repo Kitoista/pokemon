@@ -1,0 +1,22 @@
+<div class="evaluation">
+    <div *ngFor="let pokemon of evaluation.situationSet.attackers" class="vl">
+        <div>{{ pokemon.name }}</div>
+        <div *ngFor="let move of pokemon.moveset" class="type-icon type-{{move.type.name | lowercase}}">
+            {{ move.type.name }}
+        </div>
+    </div>
+    <div class="vl">
+        <span *ngFor="let breakpoint of bigBracketBreakpoints" 
+            class="effectiveness"
+            [ngClass]="breakpoint.colorClass"
+            [title]="breakpoint.display"
+        >
+            {{ evaluation.bigBrackets[breakpoint.display].length / allTypes.length | percent }}
+        </span>
+    </div>
+
+    <div class="vl">
+        <span class="effectiveness x1">{{ evaluation.averageDamage | number : '1.2-2'}}</span>
+    </div>
+    <button class="small" (click)="info()">></button>
+</div>

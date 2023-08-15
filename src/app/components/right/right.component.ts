@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { SelectedMovesetService } from 'src/app/services/selected-moveset.service';
-import { Matchup, MovesetHighscore, allTypes, log } from 'src/app/logic/poke-type';
+import { smallBracketBreakpoints } from 'src/app/logic/calculations/evaluator';
+import { Pokemon, SituationEvaluation, SituationSetEvaluation, allTypes } from 'src/app/logic/models';
+import { SelectedSituationSetService } from 'src/app/services/selected-situation-set.service';
 
 @Component({
   selector: 'poke-right',
@@ -8,13 +9,22 @@ import { Matchup, MovesetHighscore, allTypes, log } from 'src/app/logic/poke-typ
   styleUrls: ['./right.component.scss']
 })
 export class RightComponent {
-  constructor(public selectedMovesetService: SelectedMovesetService) {}
-
-  get moveset(): MovesetHighscore | undefined {
-    return this.selectedMovesetService.moveset;
+  smallBracketBreakpoints = smallBracketBreakpoints;
+  allTypes = allTypes;
+  
+  get situationSetEvaluation(): SituationSetEvaluation | undefined {
+    return this.selectedSituationSetService.situationSetEvaluation;
+  }
+  
+  get evaluations(): SituationEvaluation[] {
+    return this.situationSetEvaluation!.evaluations;
   }
 
-  get matchups(): Matchup[] | undefined {
-    return this.moveset?.matchups.filter(matchup => !(matchup.effect.multiplier === 0 && matchup.defender.length > 1));
+  constructor(public selectedSituationSetService: SelectedSituationSetService) {}
+
+  percentageOf(pokemon: Pokemon): number {
+    const cases = this.evaluations.filter(evaluation => evaluation.situation.attacker === pokemon).length;
+    const all = this.evaluations.length;
+    return cases / all;
   }
 }

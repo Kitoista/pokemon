@@ -1,0 +1,39 @@
+.accordion {
+    margin: 5px;
+
+    .accordion-title {
+        background-color: #ccc;
+        padding: 10px 15px 10px 15px;
+        border-radius: 12px 12px 0 0;
+    
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .accordion-body {
+        background-color: #eee;
+        border-radius: 0 0 12px 12px;
+        padding: 5px 10px 5px 10px;
+    }
+
+    .accordion-toggle {
+        cursor: pointer;
+        rotate: -90deg;
+        user-select: none;
+        font-size: 28px;
+    }
+
+    &.closed {
+        .accordion-title {
+            border-radius: 12px;
+        }
+
+        .accordion-toggle {
+            rotate: 90deg;
+        }
+
+        .accordion-body {
+            display: none;
+        }
+    }
+}
