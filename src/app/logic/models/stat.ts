@@ -12,9 +12,24 @@ export class Stat {
     }
 }
 
+export class HpStat {
+    constructor(
+        public base: number,
+        public ev: number
+    ) {
+    }
+
+    public get value() {
+        return calculateHpStatValue(this);
+    }
+}
+
 export interface Stats {
+    hp: HpStat,
     attack: Stat,
-    defense: Stat
+    defense: Stat,
+    spAttack: Stat,
+    spDefense: Stat
 }
 
 export const calculateRawStat = (stat: Stat): number => {
@@ -36,4 +51,10 @@ export const calculateStatModifier = (stat: Stat): number => {
 
 export const calculateStatValue = (stat: Stat): number => {
     return Math.floor(calculateRawStat(stat) * calculateStatModifier(stat));
+}
+
+export const calculateHpStatValue = (stat: HpStat): number => {
+    return Math.floor(
+        (2 * stat.base + 31 + Math.floor(stat.ev / 4)) * 50 / 100
+    ) + 50 + 10;
 }

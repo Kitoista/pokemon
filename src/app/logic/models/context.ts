@@ -1,6 +1,6 @@
 export const weathers = [
     'None',
-    'Hars sunlight',
+    'Harsh sunlight',
     'Rain',
     'Hail',
     'Sandstorm'

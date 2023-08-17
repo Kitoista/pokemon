@@ -1,4 +1,5 @@
-import { BracketBreakpoint, MoveEffect, Situation, SituationEvaluationBrackets, SituationEvaluation as SituationEvaluation, SituationSet, SituationSetEvaluation } from "../models";
+import { Parser } from "../common";
+import { BracketBreakpoint, MoveEffect, Situation, SituationEvaluationBrackets, SituationEvaluation as SituationEvaluation, SituationSet, SituationSetEvaluation, Move, weathers, Weather } from "../models";
 import { calculateDamage } from "./damage";
 
 export const smallBracketBreakpoints: BracketBreakpoint[] = [
@@ -27,7 +28,7 @@ export const evaluateSituations = (situations: Situation[]): SituationEvaluation
 
     situations.forEach(situation => {
         const currentMoveEffect = calculateDamage(situation);
-        if (!best || currentMoveEffect.dmg > bestMoveEffect!.dmg) {
+        if (!best || currentMoveEffect.damage > bestMoveEffect!.damage) {
             best = situation;
             bestMoveEffect = currentMoveEffect;
         }
@@ -38,8 +39,6 @@ export const evaluateSituations = (situations: Situation[]): SituationEvaluation
         moveEffect: bestMoveEffect!,
     };
 }
-
-let hasLogged = false;
 
 const createBrackets = (breakpoints: BracketBreakpoint[], evaluations: SituationEvaluation[]): SituationEvaluationBrackets => {
     const re: SituationEvaluationBrackets = {};
@@ -57,26 +56,71 @@ const createBrackets = (breakpoints: BracketBreakpoint[], evaluations: Situation
 
 export const evaluateSituationSet = (situationSet: SituationSet): SituationSetEvaluation => {
     const evaluations = situationSet.situationMatrix.map(evaluateSituations);
-    const sum = evaluations.reduce((sum, evalutaion) => sum + evalutaion.moveEffect.dmg, 0);
+    const sumDmg = evaluations.reduce((sum, evalutaion) => sum + evalutaion.moveEffect.damage, 0);
+    const sumDmgPercentage = evaluations.reduce((sum, evalutaion) => sum + evalutaion.moveEffect.damagePercentage, 0);
+    const sumRemainingHp = evaluations.reduce((sum, evalutaion) => sum + evalutaion.moveEffect.remainingHp, 0);
+    const ohKoCount = evaluations.filter(evaluation => evaluation.moveEffect.remainingHp === 0).length;
+
+    const usedMoves: Move[] = [];
+    evaluations.forEach(evaluation => {
+        if (!usedMoves.includes(evaluation.situation.move)) {
+            usedMoves.push(evaluation.situation.move);
+        }
+    });
+
+    situationSet.attackers = Parser.pokemons(situationSet.attackers)
+    situationSet.attackers.forEach(attacker => {
+        attacker.moveset = attacker.moveset.filter(move => usedMoves.some(m => Parser.stringify(move) === Parser.stringify(m)));
+    });
+    situationSet.attackers = situationSet.attackers.filter(attacker => attacker.moveset.length || ['Drought', 'Drizzle'].includes(attacker.ability));
 
     evaluations.sort((a, b) => {
-        return a.moveEffect.dmg - b.moveEffect.dmg;
+        const first = b.moveEffect.remainingHp - a.moveEffect.remainingHp;
+        if (first !== 0) {
+            return first
+        }
+        return a.moveEffect.damagePercentage - b.moveEffect.damagePercentage;
     });
+
+    const weatherCounts = {};
+    weathers.forEach(weather => {
+        weatherCounts[weather] = evaluations.filter(evaluation => evaluation.situation.context.weather === weather).length;
+    });
+
+    const dominantWeather = Object.keys(weatherCounts).sort((a, b) => weatherCounts[b] - weatherCounts[a])[0] as Weather;
 
     return {
         situationSet,
         evaluations,
-        averageDamage: sum / evaluations.length,
+        averageDamage: sumDmg / evaluations.length,
+        averageDamagePercentage: sumDmgPercentage / evaluations.length,
+        averageRemainingHp: sumRemainingHp / evaluations.length,
+        ohKoPercentage: ohKoCount / evaluations.length,
+        dominantWeather,
+        usedMoves,
         smallBrackets: createBrackets(smallBracketBreakpoints, evaluations),
         bigBrackets: createBrackets(bigBracketBreakpoints, evaluations)
     }
 }
 
 export const evaluateSituationSets = (situationSets: SituationSet[]): SituationSetEvaluation[] => {
-    const re: SituationSetEvaluation[] = situationSets.map(evaluateSituationSet);
+    let re: SituationSetEvaluation[] = situationSets.map(evaluateSituationSet);
+
+    const helperMap: { [concatedNames: string]: SituationSetEvaluation } = {};
+    
+    re.forEach(evaluation => {
+        const key = evaluation.situationSet.attackers.map(pokemon => `[${pokemon.name}]${pokemon.moveset.join(',')}`).join('|');
+        helperMap[key] = evaluation;
+    });
+
+    re = Object.values(helperMap);
 
     re.sort((a, b) => {
-        return b.averageDamage - a.averageDamage;
+        const first = b.ohKoPercentage - a.ohKoPercentage;
+        if (first !== 0) {
+            return first
+        }
+        return b.averageDamagePercentage - a.averageDamagePercentage;
     });
 
     return re;

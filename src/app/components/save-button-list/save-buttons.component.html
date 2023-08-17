@@ -1,0 +1,10 @@
+<div class="button-list">
+    <button class="" (click)="saveService.createSave()">New</button>
+    <button class="success" (click)="onSave.emit()">
+        Save [{{ saveService.loadedIndex === -1 ? 'N' : saveService.loadedIndex }}]
+    </button>
+    <button class="" (click)="saveService.loadNextSave()">LoadNext</button>
+    <button class="" (click)="saveService.copySave()">Copy</button>
+    <button class="danger" (click)="saveService.deleteSave()">Delete</button>
+    <button class="black" (click)="saveService.deleteAllSaves()">Delete All [{{saveService.loadedNumber}}]</button>
+</div>

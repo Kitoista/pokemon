@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core";
-import { PokeType, Stat, SuperPokemon, abilities, items, typeList } from "src/app/logic/models";
+import { Move, PokeType, Stat, SuperPokemon, abilities, items, typeList } from "src/app/logic/models";
 
 @Component({
     selector: 'pokemon',
@@ -13,29 +13,37 @@ export class PokemonComponent {
     @Input()
     public isDefender = false;
 
+    @Input()
+    public choosable = false;
+
     typeList = typeList;
     abilities = abilities;
     items = items;
-    mustHaveAttackTypes: PokeType[] = [];
-    attackPowers: { [key in PokeType['name']]: string };
-
-    get attackTypes(): PokeType[] {
-        return this.superPokemon.moveset.map(move => move.type);
-    }
+    physicalAttackPowers: { [key in PokeType['name']]: string };
+    specialAttackPowers: { [key in PokeType['name']]: string };
+    
+    hasDefenderTypes = false;
 
     get stabTypes(): PokeType[] {
         return this.superPokemon.types;
     }
 
     ngOnChanges() {
-        this.attackPowers = {};
+        this.physicalAttackPowers = {};
         typeList.forEach(type => {
-            this.attackPowers[type.name] = '';
+            this.physicalAttackPowers[type.name] = '';
+        });
+        this.specialAttackPowers = {};
+        typeList.forEach(type => {
+            this.specialAttackPowers[type.name] = '';
         });
 
         if (this.superPokemon) {
-            Object.keys(this.attackPowers).forEach(typeName => {
-                this.attackPowers[typeName] = (this.superPokemon.moveset.find(move => move.type.name === typeName)?.power || '') + '';
+            Object.keys(this.physicalAttackPowers).forEach(typeName => {
+                this.physicalAttackPowers[typeName] = (this.superPokemon.moveset.find(move => !move.isSpecial && move.type.name === typeName)?.power || '') + '';
+            });
+            Object.keys(this.specialAttackPowers).forEach(typeName => {
+                this.specialAttackPowers[typeName] = (this.superPokemon.moveset.find(move => move.isSpecial && move.type.name === typeName)?.power || '') + '';
             });
         }
     }
@@ -48,46 +56,68 @@ export class PokemonComponent {
             this.stabTypes.push(type);
         }
     }
-    
-    toggleAttackType(type: PokeType) {
-        if (!this.attackTypes.includes(type)) {
-            this.superPokemon.moveset.push({
+
+    getAttackTypes(isSpecial: boolean): PokeType[] {
+        return this.superPokemon.moveset.filter(move => move.isSpecial === isSpecial).map(move => move.type);
+    }
+
+    getMustHaveAttackTypes(isSpecial: boolean): PokeType[] {
+        return this.superPokemon.moveset.filter(move => move.isSpecial === isSpecial && move.isRequired).map(move => move.type);
+    }
+
+    toggleAttackType(type: PokeType, isSpecial: boolean): Move | undefined {
+        const attackPowers = isSpecial ? this.specialAttackPowers : this.physicalAttackPowers;
+        
+        if (!this.getAttackTypes(isSpecial).includes(type)) {
+            const re = {
+                userName: this.superPokemon.name,
                 type,
-                power: Number(this.attackPowers[type.name]) || 1
-            })
+                power: Number(attackPowers[type.name]) || 1,
+                isSpecial,
+                isRequired: false
+            };
+            this.superPokemon.moveset.push(re);
+            return re;
+        }
+
+        const indexToRemove = this.superPokemon.moveset.findIndex(move => move.type === type && isSpecial === move.isSpecial);
+        this.superPokemon.moveset.splice(indexToRemove, 1);
+        return undefined;
+    }
+
+    toggleMustHaveAttackType(event: Event, type: PokeType, isSpecial: boolean) {
+        event.preventDefault();
+        const move = this.superPokemon.moveset.find(move => move.isSpecial === isSpecial && move.type === type);
+        if (move) {
+            move.isRequired = !move.isRequired;
         } else {
-            const indexToRemove = this.superPokemon.moveset.findIndex(move => move.type === type);
-            this.superPokemon.moveset.splice(indexToRemove, 1);
+            const move = this.toggleAttackType(type, isSpecial)!;
+            move.isRequired = true;
         }
     }
 
-    toggleMustHaveAttackType(event: Event, type: PokeType) {
-        // event.preventDefault();
-        // if (!this.attackTypes.includes(type)) {
-        //     this.attackTypes.push(type);
-        // }
-        // if (!this.mustHaveAttackTypes.includes(type)) {
-        //     this.mustHaveAttackTypes.push(type);
-        // } else {
-        //     this.removeFrom(this.mustHaveAttackTypes, type);
-        // }
-    }
-
-    attackPowerChange(type: PokeType, value: string) {
-        this.attackPowers[type.name] = value;
-        const move = this.superPokemon.moveset.find(move => move.type === type);
+    attackPowerChange(type: PokeType, isSpecial: boolean, value: string) {
+        const attackPowers = isSpecial ? this.specialAttackPowers : this.physicalAttackPowers;
+        attackPowers[type.name] = value;
+        const move = this.superPokemon.moveset.find(move => move.type === type && isSpecial === move.isSpecial);
         const power = Number(value) || 1;
         if (move) {
             move.power = power;
         } else {
             this.superPokemon.moveset.push({
+                userName: this.superPokemon.name,
                 type,
-                power
-            })
+                power,
+                isSpecial,
+                isRequired: false
+            });
         }
     }
 
-    log() {
-        console.log(this.superPokemon);
+    onRightClick() {
+        if (this.choosable) {
+            this.superPokemon.isRequired = !this.superPokemon.isRequired;
+        }
     }
+
 }

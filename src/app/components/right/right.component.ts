@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { smallBracketBreakpoints } from 'src/app/logic/calculations/evaluator';
-import { Pokemon, SituationEvaluation, SituationSetEvaluation, allTypes } from 'src/app/logic/models';
-import { SelectedSituationSetService } from 'src/app/services/selected-situation-set.service';
+import { Move, Pokemon, SituationEvaluation, SituationSetEvaluation, Weather, weathers } from 'src/app/logic/models';
+import { SituationSetService } from 'src/app/services/situation-set.service';
 
 @Component({
   selector: 'poke-right',
@@ -10,21 +10,35 @@ import { SelectedSituationSetService } from 'src/app/services/selected-situation
 })
 export class RightComponent {
   smallBracketBreakpoints = smallBracketBreakpoints;
-  allTypes = allTypes;
-  
+  weathers = weathers;
+
   get situationSetEvaluation(): SituationSetEvaluation | undefined {
-    return this.selectedSituationSetService.situationSetEvaluation;
+    return this.situationSetService.situationSetEvaluation;
   }
   
   get evaluations(): SituationEvaluation[] {
     return this.situationSetEvaluation!.evaluations;
   }
 
-  constructor(public selectedSituationSetService: SelectedSituationSetService) {}
+  constructor(public situationSetService: SituationSetService) {}
 
-  percentageOf(pokemon: Pokemon): number {
-    const cases = this.evaluations.filter(evaluation => evaluation.situation.attacker === pokemon).length;
+  pokemonPercentage(pokemon: Pokemon): number {
+    const cases = this.evaluations.filter(evaluation => evaluation.situation.attacker.name === pokemon.name).length;
     const all = this.evaluations.length;
     return cases / all;
+  }
+
+  movePercentage(pokemon: Pokemon, move: Move): number {
+    const cases = this.evaluations.filter(evaluation => {
+      const sameAttacker = evaluation.situation.attacker.name === pokemon.name;
+      const sameMove = evaluation.moveEffect.type === move.type && evaluation.moveEffect.isSpecial === move.isSpecial;
+      return sameAttacker && sameMove;
+    }).length;
+    const all = this.evaluations.length;
+    return cases / all;
+  }
+
+  updateWeather(weather: Weather) {
+    this.situationSetService.updateWeather(weather);
   }
 }

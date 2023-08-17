@@ -11,12 +11,12 @@
             [ngClass]="breakpoint.colorClass"
             [title]="breakpoint.display"
         >
-            {{ evaluation.bigBrackets[breakpoint.display].length / allTypes.length | percent }}
+            {{ evaluation.bigBrackets[breakpoint.display].length / evaluation.evaluations.length | percent }}
         </span>
     </div>
 
     <div class="vl">
-        <span class="effectiveness x1">{{ evaluation.averageDamage | number : '1.2-2'}}</span>
+        <span class="effectiveness x1">{{ evaluation.ohKoPercentage | percent : '1.0-2'}}</span>
     </div>
     <button class="small" (click)="info()">></button>
 </div>

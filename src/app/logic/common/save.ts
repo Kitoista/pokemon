@@ -3,66 +3,98 @@ import { Parser } from "./parser";
 
 const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 
-const getCurrentSaves = (): RawSaves => {
-    const savesString = localStorage.getItem('saves');
-    return savesString ? JSON.parse(savesString) : {};
+export interface Save<T extends Saveable> {
+    [id: string]: T
 }
 
-const saveThese = (saves: Saves): void => {
-    localStorage.setItem('saves', Parser.stringify(saves));
+export interface Saveable {
+    id?: string;
 }
 
-export const save = (save: Save): string => {
-    if (!save.saveId) {
-        save.saveId = genRanHex(32);
-    }
-    const saves = getCurrentSaves();
-    saves[save.saveId] = save;
-
-    saveThese(saves);
-    return save.saveId;
-}
-
-export const loadAll = (): Saves => {
-    const rawSaves = getCurrentSaves();
-    const saves: Saves = {};
-    Object.keys(rawSaves).forEach(saveId => {
-        const obj = rawSaves[saveId];
-        console.log(obj);
-        
-        saves[saveId] = {
-            saveId,
-            attackers: Parser.superPokemons(obj.attackers),
-            defender: Parser.superPokemon(obj.defender),
-            context: obj.context,
-            maxAttackersNum: obj.maxAttackersNum
-        }
-    });
-    return saves;
-}
-
-export const clearSaves = (): void => {
-    saveThese({});
-}
-
-export const clearSave = (saveId: string): void => {
-    const saves = getCurrentSaves();
-    delete(saves[saveId]);
-    saveThese(saves);
-}
-
-interface RawSaves {
-    [id: string]: any
-}
-
-export interface Saves {
-    [id: string]: Save
-}
-
-export interface Save {
-    saveId?: string;
+export interface Setup extends Saveable {
     attackers: SuperPokemon[];
-    defender: SuperPokemon;
     context: Context;
     maxAttackersNum: number;
+}
+
+export interface DefenderList extends Saveable {
+    defenders: SuperPokemon[];
+}
+
+export abstract class SaveHandler<T extends Saveable> {
+    protected abstract get key(): string;
+    
+    protected abstract parse(id: string, obj: any): T;
+
+    protected getCurrentObjects(): Save<any> {
+        const osString = localStorage.getItem(this.key);
+        return osString ? JSON.parse(osString) : {};
+    }
+    
+    protected saveObjects(os: Save<T>): void {
+        localStorage.setItem(this.key, Parser.stringify(os));
+    }
+    
+    public save(o: T): string {
+        if (!o.id) {
+            o.id = genRanHex(32);
+        }
+        const os = this.getCurrentObjects();
+        os[o.id] = o;
+    
+        this.saveObjects(os);
+        return o.id;
+    }
+    
+    public loadAll(): Save<T> {
+        const rawSaves = this.getCurrentObjects();
+        const os: Save<T> = {};
+        try {
+            Object.keys(rawSaves).forEach(id => {
+                os[id] = this.parse(id, rawSaves[id]);
+            });
+        } catch(e) {
+            console.error('An error has happened during parsing');
+            console.error(e);
+        }
+        return os;
+    }
+
+    public deleteAll(): void {
+        this.saveObjects({});
+    }
+    
+    public delete(id: string): void {
+        const os = this.getCurrentObjects();
+        delete(os[id]);
+        this.saveObjects(os);
+    }
+}
+
+export class SetupSaveHandler extends SaveHandler<Setup> {
+    protected get key(): string {
+        return 'setups';
+    }
+
+    protected parse(id: string, obj: any): Setup {
+        return {
+            id: id,
+            attackers: Parser.superPokemons(obj.attackers),
+            context: obj.context,
+            maxAttackersNum: obj.maxAttackersNum
+        };
+    }
+}
+
+export class DefenderListSaveHandler extends SaveHandler<DefenderList> {
+    protected get key(): string {
+        return 'defenders';
+    }
+
+    protected parse(id: string, obj: any): DefenderList {
+        return {
+            id: id,
+            defenders: Parser.superPokemons(obj.defenders)
+        };
+    }
 }

@@ -1,4 +1,4 @@
-import { Context } from "./context";
+import { Context, Weather } from "./context";
 import { Move, MoveEffect } from "./move";
 import { Pokemon } from "./pokemon";
 
@@ -6,6 +6,12 @@ export interface Situation {
     attacker: Pokemon,
     defender: Pokemon,
     move: Move,
+    context: Context
+}
+
+export interface SituationCandidate {
+    attacker: Pokemon,
+    defender: Pokemon,
     context: Context
 }
 
@@ -19,6 +25,11 @@ export interface SituationSetEvaluation {
     situationSet: SituationSet,
     evaluations: SituationEvaluation[],
     averageDamage: number,
+    averageDamagePercentage: number,
+    averageRemainingHp: number,
+    ohKoPercentage: number,
+    dominantWeather: Weather,
+    usedMoves: Move[],
     smallBrackets: SituationEvaluationBrackets,
     bigBrackets: SituationEvaluationBrackets
 }

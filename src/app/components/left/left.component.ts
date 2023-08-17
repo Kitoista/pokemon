@@ -1,9 +1,10 @@
 import { Component, Input } from '@angular/core';
 import { evaluateSituationSets } from 'src/app/logic/calculations/evaluator';
 import { generateSituationSets } from 'src/app/logic/calculations/generator';
-import { Save, Saves, clearSave, clearSaves, loadAll, save } from 'src/app/logic/common/save';
-import { Context, SituationSetEvaluation, Stat, SuperPokemon, terrains, weathers } from 'src/app/logic/models';
-import { SelectedSituationSetService } from 'src/app/services/selected-situation-set.service';
+import { SetupSaveHandler, Setup, DefenderList } from 'src/app/logic/common';
+import { Context, HpStat, SituationSetEvaluation, Stat, SuperPokemon, allTypes, terrains, weathers } from 'src/app/logic/models';
+import { DefenderListSaveService, SetupSaveService } from 'src/app/services/save-service';
+import { SituationSetService } from 'src/app/services/situation-set.service';
 
 @Component({
   selector: 'poke-left',
@@ -14,110 +15,118 @@ export class LeftComponent {
     weathers = weathers;
     terrains = terrains;
 
-    saveId?: string;
+    setupId?: string;
     attackers: SuperPokemon[];
-    defender: SuperPokemon;
+    defenders: SuperPokemon[];
     context: Context;
     maxAttackersNum: number;
 
-    evaluations: SituationSetEvaluation[] = [];
+    defenderListId?: string;
 
-    saves: Saves = {};
+    setupSaveHandler = new SetupSaveHandler();
 
     @Input()
-    set currentSave(save: Save | null) {
-        this.saveId = save?.saveId;
-        this.attackers = save?.attackers || [this.newPokemon];
-        this.defender = save?.defender || new SuperPokemon('Dummy', [], {
-            attack: new Stat(100, 1.1, 225, 1),
-            defense: new Stat(100, 1, 0, 1)
-        }, 'None', [], 'None', 0);
-        this.context = save?.context || { weather: 'None', terrain: 'None' };
-        this.maxAttackersNum = save?.maxAttackersNum || 3;
+    set currentSetup(setup: Setup | undefined) {
+        this.setupId = setup?.id;
+        this.attackers = setup?.attackers || [this.newPokemon];
+        this.context = setup?.context || { weather: 'None', terrain: 'None' };
+        this.maxAttackersNum = setup?.maxAttackersNum || 3;
     }
 
-    get loadedNumber(): number {
-        return Object.keys(this.saves).length;
-    }
-
-    get loadedIndex(): number {
-        return this.saveId ? Object.keys(this.saves).indexOf(this.saveId) : -1;
+    @Input()
+    set currentDefenderList(defenderList: DefenderList | undefined) {
+        this.defenderListId = defenderList?.id;
+        this.defenders = defenderList?.defenders || [this.createDummy(false), this.createDummy(true)];
     }
 
     constructor(
-        public selectedSituationSetService: SelectedSituationSetService
-    ) {
-        this.currentSave = null;
-        this.saves = loadAll();
-    }
+        public situationSetService: SituationSetService,
+        public setupSaveService: SetupSaveService,
+        public defenderListSaveService: DefenderListSaveService
+    ) {}
 
     get newPokemon(): SuperPokemon {
         return new SuperPokemon('', [], {
+            hp: new HpStat(100, 0),
             attack: new Stat(100, 1.1, 255, 0),
-            defense: new Stat(100, 1, 255, 0)
-        }, 'None', [], 'None', 4);
+            defense: new Stat(100, 1, 255, 0),
+            spAttack: new Stat(100, 1.1, 255, 0),
+            spDefense: new Stat(100, 1, 255, 0)
+        }, 'None', [], 'None', 4, false);
     }
 
-    addPokemon() {
+    get mustHaveAttackers(): SuperPokemon[] {
+        return this.attackers.filter(attacker => attacker.isRequired);
+    }
+
+    get evaluations(): SituationSetEvaluation[] {
+        return this.situationSetService.evaluations;
+    }
+
+    get markedCount(): number {
+        return this.attackers.filter(attacker => attacker.isRequired).length;
+    }
+
+    get exactDefenderCount(): number {
+        return  this.defenders.filter(defender => defender.types.length > 0).length;
+    }
+
+    get generatedDefenderCount(): number {
+        const typeless = this.defenders.filter(defender => defender.types.length === 0).length;
+        return typeless * allTypes.length;
+    }
+
+    createDummy(isSpecial: boolean): SuperPokemon {
+        const weakStat = new Stat(80, 1, 0, 0);
+        const strongStat = new Stat(130, 1.1, 0, 0);
+        return new SuperPokemon((isSpecial ? 'Special' : 'Physical') + ' Dummy', [], {
+            hp: new HpStat(100, 255),
+            attack: new Stat(0, 1, 0, 0),
+            defense: isSpecial ? weakStat : strongStat,
+            spAttack: new Stat(0, 1, 0, 0),
+            spDefense: isSpecial ? strongStat : weakStat
+        }, 'None', [], 'None', 0, false);
+    }
+
+    addAttacker() {
         this.attackers.push(this.newPokemon);
     }
 
-    deletePokemon(pokemon: SuperPokemon) {
+    deleteAttacker(pokemon: SuperPokemon) {
         this.attackers.splice(this.attackers.indexOf(pokemon), 1);
     }
 
+    addDefender() {
+        const isSpecial = this.defenders.some(pokemon => pokemon.name === 'Physical Dummy');
+        this.defenders.push(this.createDummy(isSpecial));
+    }
+
+    deleteDefender(pokemon: SuperPokemon) {
+        this.defenders.splice(this.defenders.indexOf(pokemon), 1);
+    }
+
+    resetMustHave() {
+        this.mustHaveAttackers.forEach(attacker => attacker.isRequired = false);
+        this.attackers.forEach(attacker => attacker.moveset.forEach(move => move.isRequired = false));
+    }
+
     calculate() {
-        this.attackers.forEach((pokemon, i) => !pokemon.name ? pokemon.name = 'Pokémon ' + (i + 1) : null);
-        const situationSets = generateSituationSets(this.attackers, this.defender, this.context, this.maxAttackersNum);
-        this.evaluations = evaluateSituationSets(situationSets);
-        this.evaluations = this.evaluations.slice(0, 20);
-        console.log(this.evaluations);
+        this.situationSetService.calculate(this.attackers, this.defenders, this.context, this.maxAttackersNum);
     }
 
-    create() {
-        if (this.saveId) {
-            this.save();
-        }
-        this.currentSave = null;
-    }
-
-    save() {
-        this.saveId = save({
-            saveId: this.saveId,
+    saveSetup() {
+        this.setupSaveService.save({
+            id: this.setupId,
             attackers: this.attackers,
-            defender: this.defender,
             context: this.context,
             maxAttackersNum: this.maxAttackersNum
         });
-        this.saves = loadAll();
     }
 
-    loadNext() {
-        if (this.saveId) {
-            this.save();
-        }
-        console.log(this.saves);
-        const ids = Object.keys(this.saves);
-        this.currentSave = this.saves[ids[(this.loadedIndex + 1) % ids.length]];
-    }
-
-    copy() {
-        if (this.saveId) {
-            this.save();
-        }
-        this.saveId = undefined;
-        this.save();
-    }
-
-    clear() {
-        if (this.saveId) {
-            clearSave(this.saveId);
-            this.saves = loadAll();
-        }
-    }
-
-    clearAll() {
-        clearSaves();
-        this.saves = loadAll();
+    saveDefenders() {
+        this.defenderListSaveService.save({
+            id: this.defenderListId,
+            defenders: this.defenders
+        });
     }
 }

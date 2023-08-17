@@ -1,11 +1,28 @@
 <div class="moveset-info" *ngIf="situationSetEvaluation">
+    <h4>Weather:</h4>
+    <div class="weathers">
+        <button *ngFor="let possibleWeather of weathers"
+            class="small"
+            [class.success]="situationSetEvaluation.dominantWeather === possibleWeather"
+            (click)="updateWeather(possibleWeather)"
+        >
+            {{ possibleWeather }}
+        </button>
+    </div>
+
     <h4>Chosen pokemons:</h4>
     <div class="pokemon" *ngFor="let pokemon of situationSetEvaluation.situationSet.attackers; let i = index">
-        {{ pokemon.name }} {{ percentageOf(pokemon) | percent }}
-        <div>
-            <div *ngFor="let move of pokemon.moveset" class="type-icon type-{{move.type.name | lowercase}}">
-                <div>{{ move.type.name }}</div>
-                <div>{{ move.power }}</div>
+        {{ pokemon.name }} {{ pokemonPercentage(pokemon) | percent }}
+        <div style="display: flex">
+            <div class="vl"  style="display: flex; align-items: center;" *ngFor="let move of pokemon.moveset">
+                <poke-speciality [isSpecial]="move.isSpecial"></poke-speciality>
+                <div class="type-icon type-{{move.type.name | lowercase}}">
+                    <div>{{ move.type.name }}</div>
+                    <div>{{ move.power }}</div>
+                </div>
+                <div class="width-3char">
+                    {{ movePercentage(pokemon, move) | percent }}
+                </div>
             </div>
         </div>
     </div>
@@ -16,21 +33,33 @@
         [ngClass]="breakpoint.colorClass"
         [title]="breakpoint.display"
     >
-            {{ situationSetEvaluation.smallBrackets[breakpoint.display].length / allTypes.length | percent }}
+            {{ situationSetEvaluation.smallBrackets[breakpoint.display].length / evaluations.length | percent }}
     </span>
 
     <h4>Matchups:</h4>
     <div class="matchups">
         <div *ngFor="let evaluation of evaluations">
+            <span class="width-3char" [title]="evaluation.situation.attacker.name">
+                {{ (evaluation.situation.attacker.name.substring(0, 3)) }}
+            </span>
+            <poke-speciality [isSpecial]="evaluation.moveEffect.isSpecial"></poke-speciality>
             <poke-effectiveness [value]="evaluation.moveEffect.multiplier"></poke-effectiveness>
-            <span class="type-icon type-{{ evaluation.moveEffect.type.name | lowercase }} number" [title]="evaluation.moveEffect.type.name">
-                {{ evaluation.moveEffect.dmg | number : '1.2-2' }}
+            <span class="type-icon type-{{ evaluation.moveEffect.type.name | lowercase }} number" [title]="evaluation.moveEffect.remainingHp + '/' + evaluation.situation.defender.stats.hp.value">
+                {{ evaluation.moveEffect.damagePercentage | percent }}
             </span>
             =>
+            <poke-speciality [isSpecial]="evaluation.situation.defender.stats.defense.value < evaluation.situation.defender.stats.spDefense.value"></poke-speciality>
             <div *ngFor="let type of evaluation.situation.defender.types" class="type-icon type-{{type.name | lowercase}}">
                 {{ type.name }}
             </div>
-            ({{ evaluation.situation.attacker.name }})
+            <div *ngIf="evaluation.situation.defender.types.length === 1" class="type-icon"></div>
+            <span [title]="evaluation.situation.defender.name">
+                {{ (evaluation.situation.defender.name) }}
+            </span>
+            
+            <button *ngIf="evaluation.situation.context.weather !== situationSetEvaluation.dominantWeather" class="small danger">
+                {{ evaluation.situation.context.weather }}
+            </button>
         </div>
     </div>
 </div>

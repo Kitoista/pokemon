@@ -1,45 +1,29 @@
-import { Context, FAIRY, GROUND, ICE, Move, Pokemon, ROCK, Situation, SituationSet, SuperPokemon, allTypes, dualTypes, typeList } from "../models";
+import { Parser } from "../common";
+import { Context, ELECTRIC, FAIRY, GROUND, ICE, Move, Pokemon, ROCK, Situation, SituationCandidate, SituationSet, SuperPokemon, allTypes, dualTypes, typeList } from "../models";
 
 export const generatePokemons = (origin: SuperPokemon): Pokemon[] => {
-    const movesets = generateMovesets(origin.moveset, origin.numberOfAttacks);
+    const superMovelist = movesPrework(origin.moveset, origin.name);
+    const requiredMoves = origin.moveset.filter(move => move.isRequired);
+    const movesets = limitedCombiner(superMovelist.map(move => [move]), origin.numberOfAttacks)
+        .filter(moveset => requiredMoves.every(requiredMove => moveset.some(move => move.isSpecial === requiredMove.isSpecial && move.type === requiredMove.type)));
     return movesets.map(moveset => new Pokemon(origin.name, origin.types, origin.stats, origin.ability, moveset, origin.item));
 }
 
-export const generateSituationSets = (attackers: SuperPokemon[], defender: SuperPokemon, context: Context, maxAttackersNum: number): SituationSet[] => {
+export const generateSituationSets = (attackers: SuperPokemon[], defenders: SuperPokemon[], context: Context, maxAttackersNum: number): SituationSet[] => {
+    const mandatoryPokemons = attackers.filter(pokemon => pokemon.isRequired);
     const possiblePokemonSets: Pokemon[][] = attackers.map(attacker => generatePokemons(attacker));
-    const attackerSets: Pokemon[][] = limitedCombiner(possiblePokemonSets, maxAttackersNum);
-    const defenders: Pokemon[] = generateDefenders(defender);
+    const attackerSets: Pokemon[][] = limitedCombiner(possiblePokemonSets, maxAttackersNum).filter(pokemonSet => {
+        return mandatoryPokemons.every(p => pokemonSet.some(pokemon => pokemon.name === p.name));
+    });
+    const generatedDefenders: Pokemon[] = generateDefenders(defenders);
     
     let re: SituationSet[] = [];
     attackerSets.forEach(attackerSet => {
-        re.push(generateSituationSet(attackerSet, defenders, context));
+        re.push(generateSituationSet(attackerSet, generatedDefenders, context));
     });
 
     return re;
 }
-
-// function recursiveCombiner<T>(toBeCombined: T[][], knownCombinations: T[][] = []): T[][] {
-//     if (toBeCombined.length === 0) {
-//         return knownCombinations;
-//     }
-//     const newCombinations: T[][] = [];
-
-//     if (knownCombinations.length === 0) {
-//         toBeCombined[0].forEach(pokemon => {
-//             newCombinations.push([pokemon]);
-//         });
-//     } else {
-//         knownCombinations.forEach(knownSet => {
-//             toBeCombined[0].forEach(pokemon => {
-//                 newCombinations.push([ ...knownSet, pokemon ]);
-//             });
-//         });
-//     }
-
-//     const remainingtoBeCombined: T[][] = [...toBeCombined];
-//     remainingtoBeCombined.shift();
-//     return recursiveCombiner(remainingtoBeCombined, newCombinations);
-// }
 
 function limitedCombiner<T>(toBeCombined: T[][], limit: number): T[][] {
     if (toBeCombined.length === 0) {
@@ -72,41 +56,165 @@ function limitedCombiner<T>(toBeCombined: T[][], limit: number): T[][] {
     return re;
 }
 
-console.log(limitedCombiner)
+export const weatherAbilityInterceptor = (pokemon: Pokemon, context: Context): Context => {
+    let weather = context.weather;
+    switch(pokemon.ability) {
+        case 'Drought': weather = 'Harsh sunlight'; break;
+        case 'Drizzle': weather = 'Rain'; break;
+        case 'Sand Stream': weather = 'Sandstorm'; break;
+        case 'Snow Warning': weather = 'Hail'; break;
+    }
+    return {
+        weather,
+        terrain: context.terrain
+    };
+}
+
+interface TeamInfluencer {
+    attackers: Pokemon[];
+    context: Context
+}
+
+export const weatherAbilityInfluencerInterceptor = (teamInfluencer: TeamInfluencer): TeamInfluencer => {
+    let context = teamInfluencer.context;
+    const attackers = teamInfluencer.attackers;
+
+    attackers.forEach(attacker => {
+        context = weatherAbilityInterceptor(attacker, context);
+    });
+
+    return {
+        attackers,
+        context
+    }
+}
+
+export const weatherMoveInfluencerInterceptor = (teamInfluencer: TeamInfluencer): TeamInfluencer => {
+    if (teamInfluencer.context.weather === 'None') {
+        return teamInfluencer;
+    }
+
+    const context = teamInfluencer.context;
+    let attackers = teamInfluencer.attackers;
+
+    attackers = attackers.map(attacker => {
+        let re = attacker;
+        const toBeReplaced: { old: Move, new: Move }[] = [];
+        attacker.moveset.forEach(move => {
+            let newMove: Move | undefined = undefined;
+            
+            if (context.weather === 'Rain') {
+                if (move.isSpecial && (move.power === 90 || move.power === 117) && move.type === ELECTRIC) {
+                    newMove = { ...move, power: Math.floor(move.power * 110 / 90) };
+                }
+            }
+    
+            if (newMove) {
+                toBeReplaced.push({ old: move, new: newMove});
+            }
+        });
+        if (toBeReplaced.length > 0) {
+            re = new Pokemon(
+                re.name,
+                re.types,
+                re.stats,
+                re.ability,
+                re.moveset.map(move => toBeReplaced.find(moveUpdate => moveUpdate.old === move)?.new || move),
+                re.item
+            );
+            
+        }
+        return re;
+    });
+
+    return {
+        attackers,
+        context
+    };
+}
+
+export const weatherAbilityCandidateInterceptor = (situationCandidate: SituationCandidate): SituationCandidate => {
+    let attacker = situationCandidate.attacker;
+    let defender = situationCandidate.defender;
+    let context = situationCandidate.context;
+
+    context = weatherAbilityInterceptor(defender, context);
+
+    return {
+        attacker,
+        defender,
+        context
+    }
+}
+
+export const defenderAbilityCandidateInterceptor = (situationCandidate: SituationCandidate): SituationCandidate => {
+    let attacker = situationCandidate.attacker;
+    let defender = situationCandidate.defender;
+    let context = situationCandidate.context;
+
+    if (defender.ability === 'Intimidate') {
+        attacker = Parser.pokemon(attacker);
+        attacker.stats.attack.stage -= 1;
+    }
+
+    return {
+        attacker,
+        defender,
+        context
+    }
+}
+
+export const generateAttackerSituations = (situationCandidate: SituationCandidate): Situation[] => {
+    situationCandidate = weatherAbilityCandidateInterceptor(situationCandidate);
+    situationCandidate = defenderAbilityCandidateInterceptor(situationCandidate);
+
+    return situationCandidate.attacker.moveset.map(move => ({
+        ...situationCandidate,
+        move
+    }));
+}
 
 export const generateSituationSet = (attackers: Pokemon[], defenders: Pokemon[], context: Context): SituationSet => {
     const res: Situation[][] = [];
+    let teamInfluencer = { attackers, context };
+    teamInfluencer = weatherAbilityInfluencerInterceptor(teamInfluencer);
+    teamInfluencer = weatherMoveInfluencerInterceptor(teamInfluencer);
+    if (context.weather !== 'None') {
+        teamInfluencer.context = context;
+    }
+
     defenders.forEach(defender => {
         const re: Situation[] = [];
         res.push(re);
-        attackers.forEach(attacker => {
-            attacker.moveset.forEach(move => {
-                re.push({
-                    attacker,
-                    defender,
-                    move,
-                    context
-                });
-            });
+        teamInfluencer.attackers.forEach(attacker => {
+            re.push(...generateAttackerSituations({ attacker, defender, context: teamInfluencer.context }));
         });
     });
     return {
-        attackers,
+        attackers: teamInfluencer.attackers,
         defenders,
         situationMatrix: res
     };
 }
 
-export const generateDefenders = (defender: SuperPokemon): Pokemon[] => {
-    return allTypes.map(types => new Pokemon(defender.name, types, defender.stats, defender.ability, defender.moveset, defender.item));
+export const generateDefenders = (defenders: SuperPokemon[]): Pokemon[] => {
+    const re: Pokemon[] = [];
+    defenders.forEach(defender => {
+        if (defender.types.length === 0) {
+            re.push(...allTypes.map(types => new Pokemon(defender.name, types, defender.stats, defender.ability, defender.moveset, defender.item)));
+        } else {
+            re.push(defender);
+        }
+    });
+    return re;
 }
 
-export const generateMovesets = (moves?: Move[], num = 4): Move[][] => {
+const movesPrework = (moves: Move[], userName: string): Move[] => {
     if (!moves || moves.length === 0) {
-        moves = typeList.concat([]).map(type => ({ type, power: 1 }));
+        const physicalMoves: Move[] = typeList.map(type => ({ type, power: 1, isSpecial: false, userName, isRequired: false }));
+        const speicalMoves: Move[] = typeList.map(type => ({ type, power: 1, isSpecial: true, userName, isRequired: false }));
+        moves = physicalMoves.concat(speicalMoves);
     }
-    num = Math.min(moves.length, num);
-    let re: Move[][] = [];
     moves.sort((a, b) => {
         if (a.type === GROUND) return -1;
         if (b.type === GROUND) return 1;
@@ -121,43 +229,5 @@ export const generateMovesets = (moves?: Move[], num = 4): Move[][] => {
         if (b.type === ICE) return 1;
         return 0;
     });
-    for (let i = 0; i < moves.length; ++i) {
-        if (num > 1) {
-            for (let j = i + 1; j < moves.length; ++j) {
-                if (num > 2) {
-                    for (let k = j + 1; k < moves.length; ++k) {
-                        if (num > 3) {
-                            for (let l = k + 1; l < moves.length; ++l) {
-                                if (num > 4) {
-                                    for (let m = l + 1; m < moves.length; ++m) {
-                                        re.push([
-                                            moves[i],
-                                            moves[j],
-                                            moves[k],
-                                            moves[l],
-                                            moves[m]
-                                        ]);
-                                    }
-                                } else {
-                                    re.push([
-                                        moves[i],
-                                        moves[j],
-                                        moves[k],
-                                        moves[l]
-                                    ]);
-                                }
-                            }
-                        } else {
-                            re.push([moves[i], moves[j], moves[k]]);
-                        }
-                    }
-                } else {
-                    re.push([moves[i], moves[j]]);
-                }
-            }
-        } else {
-            re.push([moves[i]]);
-        }
-    }
-    return re;
+    return moves;
 }

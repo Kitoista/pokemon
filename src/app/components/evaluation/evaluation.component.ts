@@ -1,7 +1,7 @@
 import { Component, Input } from "@angular/core";
 import { bigBracketBreakpoints } from "src/app/logic/calculations/evaluator";
 import { BracketBreakpoint, SituationSetEvaluation, allTypes } from "src/app/logic/models";
-import { SelectedSituationSetService } from "src/app/services/selected-situation-set.service";
+import { SituationSetService } from "src/app/services/situation-set.service";
 
 @Component({
     selector: 'poke-evaluation',
@@ -13,13 +13,10 @@ export class EvaluationComponent {
     evaluation: SituationSetEvaluation;
 
     bigBracketBreakpoints: BracketBreakpoint[] = bigBracketBreakpoints;
-    allTypes = allTypes;
 
-    constructor(public selectedSituationSetService: SelectedSituationSetService) {}
+    constructor(public situationSetService: SituationSetService) {}
 
     info() {
-        console.log(bigBracketBreakpoints);
-        console.log(this.evaluation)
-        this.selectedSituationSetService.situationSetEvaluation = this.evaluation;
+        this.situationSetService.situationSetEvaluation = this.evaluation;
     }
 }

@@ -1,14 +1,17 @@
-<poke-accordion>
+<poke-accordion [highlightClass]="superPokemon.isRequired ? 'chosen2' : ''" (titleRightClicked)="onRightClick()">
     <ng-template #accordionTitle>
         <input [(ngModel)]="superPokemon.name" type="text" placeholder="Pokémon's name">
     </ng-template>
 
     <ng-template #accordionBody>
         <ng-container *ngIf="isDefender" [ngTemplateOutlet]="defendingStat"></ng-container>
-
-        <ng-container *ngIf="!isDefender" [ngTemplateOutlet]="attackingStat"></ng-container>
-        <ng-container *ngIf="!isDefender" [ngTemplateOutlet]="types"></ng-container>
-        <ng-container *ngIf="!isDefender" [ngTemplateOutlet]="moves"></ng-container>
+        <ng-container *ngIf="!isDefender" [ngTemplateOutlet]="attackingStats"></ng-container>
+        <ng-container [ngTemplateOutlet]="types"></ng-container>
+        <ng-container *ngIf="!isDefender" [ngTemplateOutlet]="numberOfMoves"></ng-container>
+        <ng-container *ngIf="!isDefender">
+            <ng-container *ngTemplateOutlet="moves; context: { speciality: 'Physical', powers: physicalAttackPowers, isSpecial: false }"></ng-container>
+            <ng-container *ngTemplateOutlet="moves; context: { speciality: 'Special', powers: specialAttackPowers, isSpecial: true }"></ng-container>
+        </ng-container>
 
         <ng-container [ngTemplateOutlet]="ability"></ng-container>
         
@@ -17,16 +20,32 @@
 </poke-accordion>
 
 <ng-template #defendingStat>
-    <h4>Defending stat (Def or SpDef)</h4>
+    <h4>Defending stats</h4>
     <table>
         <tr>
+            <th></th>
             <th>Base</th>
             <th>Nature</th>
             <th>EV</th>
             <th>Stage</th>
-            <th>Value</th>
+            <th></th>
         </tr>
         <tr>
+            <td>Hp</td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.hp.base" type="text" maxlength="3" placeholder="Base">
+            </td>
+            <td></td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.hp.ev" type="text" maxlength="3" placeholder="EV">
+            </td>
+            <td></td>
+            <td>
+                {{ superPokemon.stats.hp.value }}
+            </td>
+        </tr>
+        <tr>
+            <td>Defense</td>
             <td>
                 <input [(ngModel)]="superPokemon.stats.defense.base" type="text" maxlength="3"
                     placeholder="Base defending stat">
@@ -44,20 +63,41 @@
                 {{ superPokemon.stats.defense.value }}
             </td>
         </tr>
+        <tr>
+            <td>Special Defense</td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.spDefense.base" type="text" maxlength="3"
+                    placeholder="Base defending stat">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.spDefense.nature" type="text" maxlength="3" placeholder="Nature">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.spDefense.ev" type="text" maxlength="3" placeholder="EV">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.spDefense.stage" type="text" maxlength="3" placeholder="Stage">
+            </td>
+            <td>
+                {{ superPokemon.stats.spDefense.value }}
+            </td>
+        </tr>
     </table>
 </ng-template>
 
-<ng-template #attackingStat>
-    <h4>Damaging stat (Atk or SpAtk)</h4>
+<ng-template #attackingStats>
+    <h4>Damaging stats</h4>
     <table>
         <tr>
+            <th></th>
             <th>Base</th>
             <th>Nature</th>
             <th>EV</th>
             <th>Stage</th>
-            <th>Value</th>
+            <th></th>
         </tr>
         <tr>
+            <td>Attack</td>
             <td>
                 <input [(ngModel)]="superPokemon.stats.attack.base" type="text" maxlength="3"
                     placeholder="Base damaging stat">
@@ -75,6 +115,25 @@
                 {{ superPokemon.stats.attack.value }}
             </td>
         </tr>
+        <tr>
+            <td>Special Attack</td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.spAttack.base" type="text" maxlength="3"
+                    placeholder="Base damaging stat">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.spAttack.nature" type="text" maxlength="3" placeholder="Nature">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.spAttack.ev" type="text" maxlength="3" placeholder="EV">
+            </td>
+            <td>
+                <input [(ngModel)]="superPokemon.stats.spAttack.stage" type="text" maxlength="3" placeholder="Stage">
+            </td>
+            <td>
+                {{ superPokemon.stats.spAttack.value }}
+            </td>
+        </tr>
     </table>
 </ng-template>
 
@@ -88,20 +147,28 @@
             </div>
 </ng-template>
 
-<ng-template #moves>
+<ng-template #numberOfMoves>
     <h4>
-        {{ superPokemon.name || 'Your Pokémon' }} can learn:
+        Number of damaging moves:
         <button (click)="superPokemon.numberOfAttacks = (superPokemon.numberOfAttacks) % 4 + 1">
             {{superPokemon.numberOfAttacks}}
         </button>
     </h4>
+</ng-template>
+
+<ng-template #moves let-speciality="speciality" let-powers="powers" let-isSpecial="isSpecial">
+    <h4>
+        {{ speciality }} moveset:
+    </h4>
     <div class="attack-types">
         <span *ngFor="let type of typeList" class="type-icon type-{{type.name | lowercase}}"
-            [class.chosen]="attackTypes.includes(type)" [class.chosen2]="mustHaveAttackTypes.includes(type)">
-            <div (click)="toggleAttackType(type)" (contextmenu)="toggleMustHaveAttackType($event, type)">
+            [class.chosen]="getAttackTypes(isSpecial).includes(type)" [class.chosen2]="getMustHaveAttackTypes(isSpecial).includes(type)"
+             (contextmenu)="toggleMustHaveAttackType($event, type, isSpecial)"
+             (click)="toggleAttackType(type, isSpecial)">
+            <div>
                 {{ type.name }}
             </div>
-            <input [ngModel]="attackPowers[type.name]" (ngModelChange)="attackPowerChange(type, $event)" type="text" maxlength="3" />
+            <input [ngModel]="powers[type.name]" (ngModelChange)="attackPowerChange(type, isSpecial, $event)" type="text" maxlength="3" />
         </span>
     </div>
 </ng-template>

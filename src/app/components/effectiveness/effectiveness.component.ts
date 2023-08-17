@@ -1,5 +1,4 @@
 import { Component, Input } from '@angular/core';
-import { allTypes } from 'src/app/logic/models';
 
 @Component({
     selector: 'poke-effectiveness',
@@ -10,7 +9,6 @@ export class EffectivenessComponent {
     @Input() value: number;
     
     intervals = [0.25, 0.5, 1, 2, 4, Number.POSITIVE_INFINITY];
-    allTypes = allTypes;
 
     get xClass() {
         let val = 0;

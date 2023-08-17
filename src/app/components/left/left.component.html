@@ -1,22 +1,26 @@
-<div class="button-list">
-    <button class="" (click)="create()">New</button>
-    <button class="success" (click)="save()">Save [{{ loadedIndex === -1 ? 'N' : loadedIndex }}]</button>
-    <button class="" (click)="loadNext()">LoadNext</button>
-    <button class="" (click)="copy()">Copy</button>
-    <button class="danger" (click)="clear()">Delete</button>
-    <button class="black" (click)="clearAll()">Delete All [{{loadedNumber}}]</button>
+<poke-setup-save-buttons (onSave)="saveSetup()"></poke-setup-save-buttons>
+
+<div style="margin-top: 15px">
+    <poke-accordion>
+        <ng-template #accordionTitle>
+            <h4>Your Pokémons [{{ markedCount ? markedCount + ' / ' : '' }}{{ attackers.length }}]:</h4>
+        </ng-template>
+        <ng-template #accordionBody>
+            <div class="pokemon-row" *ngFor="let superPokemon of attackers">
+                <button class="delete small danger" (click)="deleteAttacker(superPokemon)">X</button>
+                <pokemon [superPokemon]="superPokemon" [choosable]="true"></pokemon>
+            </div>
+        </ng-template>
+    </poke-accordion>
 </div>
 
-<div class="pokemon-row" *ngFor="let superPokemon of attackers">
-    <button class="delete small danger" (click)="deletePokemon(superPokemon)">X</button>
-    <pokemon [superPokemon]="superPokemon"></pokemon>
-</div>
-
-<button class="small" (click)="addPokemon()">Add pokemon</button>
+<button class="small" (click)="addAttacker()">Add pokemon</button>
 
 <button (click)="maxAttackersNum = maxAttackersNum % 6 + 1">
     {{maxAttackersNum}}
 </button>
+
+<button (click)="resetMustHave()">Reset selection</button>
 
 <h4>Context:</h4>
 <div class="weathers">
@@ -32,8 +36,22 @@
     </button>
 </div>
 
-<h4>Opponent:</h4>
-<pokemon [superPokemon]="defender" [isDefender]="true"></pokemon>
+<poke-defender-list-save-buttons (onSave)="saveDefenders()"></poke-defender-list-save-buttons>
+
+<div style="margin-top: 15px">
+    <poke-accordion>
+        <ng-template #accordionTitle>
+            <h4>Opponents [{{ exactDefenderCount }} | {{ generatedDefenderCount }}]:</h4>
+        </ng-template>
+        <ng-template #accordionBody>
+            <div class="pokemon-row" *ngFor="let defender of defenders">
+                <button class="delete small danger" (click)="deleteDefender(defender)">X</button>
+                <pokemon [superPokemon]="defender" [isDefender]="true"></pokemon>
+            </div>
+            <button class="small" (click)="addDefender()">Add pokemon</button>
+        </ng-template>
+    </poke-accordion>
+</div>
 
 <div class="button-list">
     <button class="primary" (click)="calculate()">Calculate</button>
