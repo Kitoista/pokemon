@@ -35,7 +35,7 @@ export const itemInterceptor = (situation: Situation): number => {
 export const offensiveAbilityInterceptor = (situation: Situation): number => {
     switch(situation.attacker.ability) {
         case 'Tinted Lens': return typeInterceptor(situation) < 1 ? 2 : 1;
-        case 'GrowthAbuser': return situation.context.weather === 'Harsh sunlight' ? 2 : 1;
+        case 'Solar Power': return situation.context.weather === 'Harsh sunlight' ? 1.5 : 1;
     }
     return 1;
 }
@@ -111,7 +111,6 @@ export const uniqueMoveInterceptor = (situation: Situation): number => {
 export const calculateMultiplier = (situation: Situation): number => {
     return stabInterceptor(situation) *
         typeInterceptor(situation) *
-        itemInterceptor(situation) *
         offensiveAbilityInterceptor(situation) *
         defensiveAbilityInterceptor(situation) *
         weatherInterceptor(situation) *
@@ -126,12 +125,15 @@ export const calculateDamage = (situation: Situation): MoveEffect => {
     const attackerStats = situation.attacker.stats;
     const defenderStats = situation.defender.stats;
 
+    const itemMultiplier = itemInterceptor(situation);
+    const POWER = Math.round(situation.move.power * itemMultiplier);
+
     const A = isSpecial ? attackerStats.spAttack.value : attackerStats.attack.value;
     const D = isSpecial ? defenderStats.spDefense.value : defenderStats.defense.value;
 
-    const dmg = (situation.move.power * A / D * 22 / 50 + 2) * multiplier;
+    const dmg = Math.round((POWER * A / D * 22 / 50 + 2) * multiplier);
     
-    const remainingHp = Math.max(situation.defender.stats.hp.value - Math.floor(dmg), 0);
+    const remainingHp = Math.max(situation.defender.stats.hp.value - dmg, 0);
     const dmgPercentage = dmg / situation.defender.stats.hp.value;
 
     return {

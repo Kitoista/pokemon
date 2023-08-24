@@ -1,4 +1,23 @@
 .evaluation {
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    justify-content: space-between;
+    
+    border-bottom: 3px solid #2e3436;
+
+    .pkm {
+        width: 160px;
+    }
+
+    .common {
+        display: flex;
+        width: 263px;
+        border-left: 3px solid #2e3436;
+
+        .strechable {
+            display: flex;
+            align-items: center;
+        }
+    }
+
 }

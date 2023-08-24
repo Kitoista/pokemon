@@ -1,6 +1,7 @@
 <poke-accordion [highlightClass]="superPokemon.isRequired ? 'chosen2' : ''" (titleRightClicked)="onRightClick()">
     <ng-template #accordionTitle>
         <input [(ngModel)]="superPokemon.name" type="text" placeholder="Pokémon's name">
+        <span style="margin-left: 6px" *ngIf="!isDefender">{{ superPokemon.mutantCounts }}</span>
     </ng-template>
 
     <ng-template #accordionBody>
@@ -16,6 +17,7 @@
         <ng-container [ngTemplateOutlet]="ability"></ng-container>
         
         <ng-container *ngIf="!isDefender" [ngTemplateOutlet]="item"></ng-container>
+        <ng-container *ngIf="!isDefender" [ngTemplateOutlet]="role"></ng-container>
     </ng-template>
 </poke-accordion>
 
@@ -191,6 +193,20 @@
             [ngClass]="{ success: superPokemon.item === possibleItem }"
             (click)="superPokemon.item = possibleItem">
             {{ possibleItem }}
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #role>
+    <h4>
+        {{ superPokemon.name || 'Your Pokémon' }}'s role:
+        <input [ngModel]="!superPokemon.roleFailure" (ngModelChange)="superPokemon.roleFailure = !superPokemon.roleFailure" type="checkbox"/>
+    </h4>
+    <div class="roles">
+        <button *ngFor="let possibleRole of roles" class="small"
+            [ngClass]="{ success: superPokemon.role === possibleRole }"
+            (click)="superPokemon.role = possibleRole">
+            {{ possibleRole }}
         </button>
     </div>
 </ng-template>

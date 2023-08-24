@@ -1,9 +1,9 @@
 <poke-setup-save-buttons (onSave)="saveSetup()"></poke-setup-save-buttons>
 
 <div style="margin-top: 15px">
-    <poke-accordion>
+    <poke-accordion [highlightClass]="markedCount > 0 ? 'chosen' : ''">
         <ng-template #accordionTitle>
-            <h4>Your Pokémons [{{ markedCount ? markedCount + ' / ' : '' }}{{ attackers.length }}]:</h4>
+            <h4>Your Pokémons [{{ markedCount ? markedCount + ' / ' : '' }}{{ attackersCount }}]:</h4>
         </ng-template>
         <ng-template #accordionBody>
             <div class="pokemon-row" *ngFor="let superPokemon of attackers">
@@ -20,7 +20,7 @@
     {{maxAttackersNum}}
 </button>
 
-<button (click)="resetMustHave()">Reset selection</button>
+<button (click)="resetMarkings()">Reset selection</button>
 
 <h4>Context:</h4>
 <div class="weathers">
@@ -55,6 +55,7 @@
 
 <div class="button-list">
     <button class="primary" (click)="calculate()">Calculate</button>
+    <span>{{ attackerCombinationCount }} combinations</span>
 </div>
 
 <h4>This is your setup:</h4>

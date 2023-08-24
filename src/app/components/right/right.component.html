@@ -10,7 +10,21 @@
         </button>
     </div>
 
-    <h4>Chosen pokemons:</h4>
+    <h4>Roles:</h4>
+    <div class="roles">
+        <button *ngFor="let attacker of attackersWithRoles"
+            class="small"
+            [class.success]="!attacker.roleFailure"
+            (click)="updateRoleFailure(attacker)"
+        >
+            {{ attacker.role }}
+        </button>
+    </div>
+
+    <h4>
+        Chosen pokemons:
+        <span class="effectiveness x1">{{ situationSetEvaluation.ohKoPercentage | percent : '1.0-2'}}</span>
+    </h4>
     <div class="pokemon" *ngFor="let pokemon of situationSetEvaluation.situationSet.attackers; let i = index">
         {{ pokemon.name }} {{ pokemonPercentage(pokemon) | percent }}
         <div style="display: flex">
@@ -43,6 +57,7 @@
                 {{ (evaluation.situation.attacker.name.substring(0, 3)) }}
             </span>
             <poke-speciality [isSpecial]="evaluation.moveEffect.isSpecial"></poke-speciality>
+            <poke-stat-modifier [isSpecial]="evaluation.moveEffect.isSpecial" [pokemon]="evaluation.situation.attacker"></poke-stat-modifier>
             <poke-effectiveness [value]="evaluation.moveEffect.multiplier"></poke-effectiveness>
             <span class="type-icon type-{{ evaluation.moveEffect.type.name | lowercase }} number" [title]="evaluation.moveEffect.remainingHp + '/' + evaluation.situation.defender.stats.hp.value">
                 {{ evaluation.moveEffect.damagePercentage | percent }}

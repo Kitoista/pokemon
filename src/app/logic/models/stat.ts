@@ -4,8 +4,7 @@ export class Stat {
         public nature: number,
         public ev: number,
         public stage: number
-    ) {
-    }
+    ) {}
 
     public get value() {
         return calculateStatValue(this);
@@ -16,8 +15,7 @@ export class HpStat {
     constructor(
         public base: number,
         public ev: number
-    ) {
-    }
+    ) {}
 
     public get value() {
         return calculateHpStatValue(this);

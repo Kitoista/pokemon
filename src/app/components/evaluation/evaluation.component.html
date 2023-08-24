@@ -1,22 +1,26 @@
 <div class="evaluation">
-    <div *ngFor="let pokemon of evaluation.situationSet.attackers" class="vl">
+    <div *ngFor="let pokemon of evaluation.situationSet.attackers; let i = index" class="pkm" [class.vl]="i < evaluation.situationSet.attackers.length - 1">
         <div>{{ pokemon.name }}</div>
         <div *ngFor="let move of pokemon.moveset" class="type-icon type-{{move.type.name | lowercase}}">
             {{ move.type.name }}
         </div>
     </div>
-    <div class="vl">
-        <span *ngFor="let breakpoint of bigBracketBreakpoints" 
-            class="effectiveness"
-            [ngClass]="breakpoint.colorClass"
-            [title]="breakpoint.display"
-        >
-            {{ evaluation.bigBrackets[breakpoint.display].length / evaluation.evaluations.length | percent }}
-        </span>
+    <div class="common">
+        <div class="vl strechable">
+            <span *ngFor="let breakpoint of bigBracketBreakpoints" 
+                class="effectiveness"
+                [ngClass]="breakpoint.colorClass"
+                [title]="breakpoint.display"
+            >
+                {{ evaluation.bigBrackets[breakpoint.display].length / evaluation.evaluations.length | percent }}
+            </span>
+        </div>
+    
+        <div class="vl strechable">
+            <span class="effectiveness x1">{{ evaluation.ohKoPercentage | percent : '1.0-2'}}</span>
+        </div>
+        <div class="strechable">
+            <button class="small" (click)="info()">></button>
+        </div>
     </div>
-
-    <div class="vl">
-        <span class="effectiveness x1">{{ evaluation.ohKoPercentage | percent : '1.0-2'}}</span>
-    </div>
-    <button class="small" (click)="info()">></button>
 </div>

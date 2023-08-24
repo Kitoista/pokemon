@@ -1,7 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { evaluateSituationSets } from 'src/app/logic/calculations/evaluator';
-import { generateSituationSets } from 'src/app/logic/calculations/generator';
-import { SetupSaveHandler, Setup, DefenderList } from 'src/app/logic/common';
+import { generateAttackerSets, generatePokemons } from 'src/app/logic/calculations/generator';
+import { SetupSaveHandler, Setup, DefenderList, binomialCoefficient } from 'src/app/logic/common';
 import { Context, HpStat, SituationSetEvaluation, Stat, SuperPokemon, allTypes, terrains, weathers } from 'src/app/logic/models';
 import { DefenderListSaveService, SetupSaveService } from 'src/app/services/save-service';
 import { SituationSetService } from 'src/app/services/situation-set.service';
@@ -52,7 +51,7 @@ export class LeftComponent {
             defense: new Stat(100, 1, 255, 0),
             spAttack: new Stat(100, 1.1, 255, 0),
             spDefense: new Stat(100, 1, 255, 0)
-        }, 'None', [], 'None', 4, false);
+        }, 'None', [], 'None', 'None', false, 4, false);
     }
 
     get mustHaveAttackers(): SuperPokemon[] {
@@ -64,7 +63,23 @@ export class LeftComponent {
     }
 
     get markedCount(): number {
-        return this.attackers.filter(attacker => attacker.isRequired).length;
+        return this.attackers
+            .filter(attacker => attacker.isRequired)
+            .map(attacker => attacker.name.split(' ')[0])
+            .filter(((name, i, a) => i === a.indexOf(name))).length;
+    }
+
+    get attackersCount(): number {
+        return this.attackerNames.length;
+    }
+
+    get attackerNames(): string[] {
+        return this.attackers.map(attacker => attacker.name.split(' ')[0])
+            .filter(((name, i, a) => i === a.indexOf(name)));
+    }
+
+    get attackerCombinationCount(): number {
+        return generateAttackerSets(this.attackers, this.maxAttackersNum).length;
     }
 
     get exactDefenderCount(): number {
@@ -85,7 +100,7 @@ export class LeftComponent {
             defense: isSpecial ? weakStat : strongStat,
             spAttack: new Stat(0, 1, 0, 0),
             spDefense: isSpecial ? strongStat : weakStat
-        }, 'None', [], 'None', 0, false);
+        }, 'None', [], 'None', 'None', false, 0, false);
     }
 
     addAttacker() {
@@ -105,9 +120,12 @@ export class LeftComponent {
         this.defenders.splice(this.defenders.indexOf(pokemon), 1);
     }
 
-    resetMustHave() {
+    resetMarkings() {
         this.mustHaveAttackers.forEach(attacker => attacker.isRequired = false);
-        this.attackers.forEach(attacker => attacker.moveset.forEach(move => move.isRequired = false));
+        this.attackers.forEach(attacker => {
+            attacker.moveset.forEach(move => move.isRequired = false);
+            attacker.roleFailure = false;
+        });
     }
 
     calculate() {

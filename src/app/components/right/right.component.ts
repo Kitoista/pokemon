@@ -4,41 +4,49 @@ import { Move, Pokemon, SituationEvaluation, SituationSetEvaluation, Weather, we
 import { SituationSetService } from 'src/app/services/situation-set.service';
 
 @Component({
-  selector: 'poke-right',
-  templateUrl: './right.component.html',
-  styleUrls: ['./right.component.scss']
+    selector: 'poke-right',
+    templateUrl: './right.component.html',
+    styleUrls: ['./right.component.scss']
 })
 export class RightComponent {
-  smallBracketBreakpoints = smallBracketBreakpoints;
-  weathers = weathers;
+    smallBracketBreakpoints = smallBracketBreakpoints;
+    weathers = weathers;
 
-  get situationSetEvaluation(): SituationSetEvaluation | undefined {
-    return this.situationSetService.situationSetEvaluation;
-  }
-  
-  get evaluations(): SituationEvaluation[] {
-    return this.situationSetEvaluation!.evaluations;
-  }
+    get situationSetEvaluation(): SituationSetEvaluation | undefined {
+        return this.situationSetService.situationSetEvaluation;
+    }
+    
+    get evaluations(): SituationEvaluation[] {
+        return this.situationSetEvaluation!.evaluations;
+    }
 
-  constructor(public situationSetService: SituationSetService) {}
+    get attackersWithRoles(): Pokemon[] {
+        return this.situationSetEvaluation!.situationSet.attackers.filter(attacker => attacker.role !== 'None');
+    }
 
-  pokemonPercentage(pokemon: Pokemon): number {
-    const cases = this.evaluations.filter(evaluation => evaluation.situation.attacker.name === pokemon.name).length;
-    const all = this.evaluations.length;
-    return cases / all;
-  }
+    constructor(public situationSetService: SituationSetService) {}
 
-  movePercentage(pokemon: Pokemon, move: Move): number {
-    const cases = this.evaluations.filter(evaluation => {
-      const sameAttacker = evaluation.situation.attacker.name === pokemon.name;
-      const sameMove = evaluation.moveEffect.type === move.type && evaluation.moveEffect.isSpecial === move.isSpecial;
-      return sameAttacker && sameMove;
-    }).length;
-    const all = this.evaluations.length;
-    return cases / all;
-  }
+    pokemonPercentage(pokemon: Pokemon): number {
+        const cases = this.evaluations.filter(evaluation => evaluation.situation.attacker.name === pokemon.name).length;
+        const all = this.evaluations.length;
+        return cases / all;
+    }
 
-  updateWeather(weather: Weather) {
-    this.situationSetService.updateWeather(weather);
-  }
+    movePercentage(pokemon: Pokemon, move: Move): number {
+        const cases = this.evaluations.filter(evaluation => {
+            const sameAttacker = evaluation.situation.attacker.name === pokemon.name;
+            const sameMove = evaluation.moveEffect.type === move.type && evaluation.moveEffect.isSpecial === move.isSpecial;
+            return sameAttacker && sameMove;
+        }).length;
+        const all = this.evaluations.length;
+        return cases / all;
+    }
+
+    updateWeather(weather: Weather) {
+        this.situationSetService.updateWeather(weather);
+    }
+
+    updateRoleFailure(pokemon: Pokemon) {
+        this.situationSetService.updateRoleFailure(pokemon);
+    }
 }

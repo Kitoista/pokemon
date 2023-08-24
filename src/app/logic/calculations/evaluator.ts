@@ -1,6 +1,7 @@
-import { Parser } from "../common";
-import { BracketBreakpoint, MoveEffect, Situation, SituationEvaluationBrackets, SituationEvaluation as SituationEvaluation, SituationSet, SituationSetEvaluation, Move, weathers, Weather } from "../models";
+import { Parser, tock, tick } from "../common";
+import { BracketBreakpoint, MoveEffect, Situation, SituationEvaluationBrackets, SituationEvaluation as SituationEvaluation, SituationSet, SituationSetEvaluation, Move, weathers, Weather, SuperPokemon, Context, Pokemon } from "../models";
 import { calculateDamage } from "./damage";
+import { generateAttackerSets, generateDefenders, generateSituationSet } from "./generator";
 
 export const smallBracketBreakpoints: BracketBreakpoint[] = [
     { min: 6, max: Number.POSITIVE_INFINITY, display: 'x6', colorClass: 'x4' },
@@ -21,6 +22,45 @@ export const bigBracketBreakpoints: BracketBreakpoint[] = [
     { min: 1, max: 2, display: 'effective', colorClass: 'x1' },
     { min: Number.NEGATIVE_INFINITY, max: 1, display: 'not very effective or immune', colorClass: 'x05' },
 ];
+
+
+export const evaluateAll = (attackers: SuperPokemon[], defenders: SuperPokemon[], context: Context, maxAttackersNum: number, topN: number): SituationSetEvaluation[] => {
+    const attackerSets: Pokemon[][] = generateAttackerSets(attackers, maxAttackersNum);
+    const generatedDefenders: Pokemon[] = generateDefenders(defenders);
+    
+    let re: SituationSetEvaluation[] = [];
+
+    console.log(attackerSets.length);
+
+    tick('evaluation');
+    attackerSets.forEach(attackerSet => {
+        let situationSet = generateSituationSet(attackerSet, generatedDefenders, context);
+        let evaluation = evaluateSituationSet(situationSet);
+        evaluation.usedMoves
+
+        if (re.some(existing => {
+            return existing.usedMoves.every(move => {
+                return evaluation.usedMoves.some(m => m.isSpecial === move.isSpecial && m.power === move.power && m.userName === move.userName)
+            });
+        })) {
+            return;
+        }
+
+        if (re.length < topN) {
+            re.push(evaluation);
+            re.sort(situationSetEvaluationComparator);
+        } else {
+            const worseIndex = re.findIndex(existing => situationSetEvaluationComparator(existing, evaluation) > 0);
+            if (worseIndex > -1) {
+                re.splice(worseIndex, 0, evaluation);
+                re.pop();
+            }
+        }
+    });
+    tock('evaluation');
+
+    return re;
+}
 
 export const evaluateSituations = (situations: Situation[]): SituationEvaluation => {
     let best: Situation;
@@ -72,14 +112,21 @@ export const evaluateSituationSet = (situationSet: SituationSet): SituationSetEv
     situationSet.attackers.forEach(attacker => {
         attacker.moveset = attacker.moveset.filter(move => usedMoves.some(m => Parser.stringify(move) === Parser.stringify(m)));
     });
-    situationSet.attackers = situationSet.attackers.filter(attacker => attacker.moveset.length || ['Drought', 'Drizzle'].includes(attacker.ability));
+    situationSet.attackers = situationSet.attackers.filter(attacker => {
+        return attacker.moveset.length || ['Drought', 'Drizzle'].includes(attacker.ability) || ['Swords Dance Passer'].includes(attacker.role)
+    });
 
-    evaluations.sort((a, b) => {
-        const first = b.moveEffect.remainingHp - a.moveEffect.remainingHp;
-        if (first !== 0) {
-            return first
+    evaluations.sort((aEval, bEval) => {
+        const a = aEval.moveEffect;
+        const b = bEval.moveEffect;
+
+        if (b.remainingHp === 0 && a.remainingHp === 0) {
+            return a.damagePercentage - b.damagePercentage;
         }
-        return a.moveEffect.damagePercentage - b.moveEffect.damagePercentage;
+        if (b.remainingHp === 0) return -1;
+        if (a.remainingHp === 0) return 1;
+        
+        return a.damagePercentage - b.damagePercentage;
     });
 
     const weatherCounts = {};
@@ -103,6 +150,14 @@ export const evaluateSituationSet = (situationSet: SituationSet): SituationSetEv
     }
 }
 
+const situationSetEvaluationComparator = (a, b) => {
+    const first = b.ohKoPercentage - a.ohKoPercentage;
+    if (first !== 0) {
+        return first
+    }
+    return b.averageDamagePercentage - a.averageDamagePercentage;
+}
+
 export const evaluateSituationSets = (situationSets: SituationSet[]): SituationSetEvaluation[] => {
     let re: SituationSetEvaluation[] = situationSets.map(evaluateSituationSet);
 
@@ -115,13 +170,7 @@ export const evaluateSituationSets = (situationSets: SituationSet[]): SituationS
 
     re = Object.values(helperMap);
 
-    re.sort((a, b) => {
-        const first = b.ohKoPercentage - a.ohKoPercentage;
-        if (first !== 0) {
-            return first
-        }
-        return b.averageDamagePercentage - a.averageDamagePercentage;
-    });
+    re.sort(situationSetEvaluationComparator);
 
     return re;
 }

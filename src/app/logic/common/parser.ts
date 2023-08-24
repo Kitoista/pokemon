@@ -22,9 +22,11 @@ export class Parser {
             obj.name,
             Parser.pokeTypes(obj.types),
             Parser.stats(obj.stats),
-            obj.ability,
+            obj.ability || 'None',
             Parser.moveset(obj.moveset),
-            obj.item
+            obj.item || 'None',
+            obj.role || 'None',
+            !!obj.roleFailure
         );
     }
 
@@ -40,11 +42,13 @@ export class Parser {
             obj.name,
             Parser.pokeTypes(obj.types),
             Parser.stats(obj.stats),
-            obj.ability,
+            obj.ability || 'None',
             Parser.moveset(obj.moveset, obj.name),
-            obj.item,
+            obj.item || 'None',
+            obj.role || 'None',
+            !!obj.roleFailure,
             obj.numberOfAttacks,
-            obj.isRequired
+            !!obj.isRequired
         );
     }
 

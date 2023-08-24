@@ -9,12 +9,6 @@ export interface Situation {
     context: Context
 }
 
-export interface SituationCandidate {
-    attacker: Pokemon,
-    defender: Pokemon,
-    context: Context
-}
-
 export interface SituationSet {
     attackers: Pokemon[],
     defenders: Pokemon[],

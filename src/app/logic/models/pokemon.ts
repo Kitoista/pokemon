@@ -1,7 +1,9 @@
+import { binomialCoefficient } from "../common";
 import { Ability } from "./ability";
 import { Item } from "./item";
 import { Move } from "./move";
 import { PokeType } from "./poke-type";
+import { Role } from "./role";
 import { HpStat, Stat, Stats } from "./stat";
 
 export class Pokemon {
@@ -17,7 +19,9 @@ export class Pokemon {
         },
         public ability: Ability,
         public moveset: Move[] = [],
-        public item: Item = 'None'
+        public item: Item,
+        public role: Role,
+        public roleFailure: boolean
     ) { }
 }
 
@@ -29,9 +33,16 @@ export class SuperPokemon extends Pokemon {
         ability: Ability,
         moveset: Move[],
         item: Item,
+        role: Role,
+        roleFailure: boolean,
         public numberOfAttacks: number,
         public isRequired: boolean,
     ) {
-        super(name, types, stats, ability, moveset, item);
+        super(name, types, stats, ability, moveset, item, role, roleFailure);
+    }
+
+    
+    get mutantCounts(): number {
+        return binomialCoefficient(this.moveset.length, this.numberOfAttacks);
     }
 }

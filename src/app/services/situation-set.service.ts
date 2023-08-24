@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Context, SituationSetEvaluation, SuperPokemon, Weather } from '../logic/models';
-import { generateSituationSets } from '../logic/calculations/generator';
-import { evaluateSituationSets } from '../logic/calculations/evaluator';
-import { Parser } from '../logic/common';
+import { Context, Pokemon, SituationSetEvaluation, SuperPokemon, Weather } from '../logic/models';
+import { evaluateAll } from '../logic/calculations/evaluator';
 
 @Injectable({
     providedIn: 'root'
@@ -25,9 +23,7 @@ export class SituationSetService {
 
         attackers.forEach((pokemon, i) => !pokemon.name ? pokemon.name = 'Pokémon ' + (i + 1) : null);
         
-        const situationSets = generateSituationSets(attackers, defenders, context, maxAttackersNum);
-        this.evaluations = evaluateSituationSets(situationSets);
-        this.evaluations = this.evaluations.slice(0, 20);
+        this.evaluations = evaluateAll(attackers, defenders, context, maxAttackersNum, 20);
         return this.evaluations;
     }
 
@@ -42,6 +38,21 @@ export class SituationSetService {
             attackers,
             this.previousSettings.defenders,
             context,
+            this.previousSettings.maxAttackersNum,
+            true
+        );
+        this.situationSetEvaluation = this.evaluations[0];
+    }
+
+    updateRoleFailure(pokemon: Pokemon) {
+        const attackers = this.autoMark();
+        const attacker = attackers.find(attacker => attacker.name === pokemon.name)!;
+        attacker.roleFailure = !attacker.roleFailure;
+
+        this.calculate(
+            attackers,
+            this.previousSettings.defenders,
+            this.previousSettings.context,
             this.previousSettings.maxAttackersNum,
             true
         );

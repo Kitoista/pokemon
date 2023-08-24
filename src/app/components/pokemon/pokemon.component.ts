@@ -1,5 +1,7 @@
 import { Component, Input } from "@angular/core";
+import { binomialCoefficient } from "src/app/logic/common";
 import { Move, PokeType, Stat, SuperPokemon, abilities, items, typeList } from "src/app/logic/models";
+import { roles } from "src/app/logic/models/role";
 
 @Component({
     selector: 'pokemon',
@@ -19,6 +21,7 @@ export class PokemonComponent {
     typeList = typeList;
     abilities = abilities;
     items = items;
+    roles = roles;
     physicalAttackPowers: { [key in PokeType['name']]: string };
     specialAttackPowers: { [key in PokeType['name']]: string };
     

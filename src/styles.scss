@@ -172,7 +172,7 @@ button {
     }
 }
 
-.speciality {
+.box {
     display: inline-block;
     padding-left: 2px;
     padding-right: 2px;
@@ -191,6 +191,10 @@ button {
     cursor: pointer;
     margin: 4px;
     width: 16px;
+}
+
+.speciality {
+    @extend .box;
 
     &.physical {
         background-color: #831818;
@@ -199,6 +203,13 @@ button {
     &.special {
         background-color: #432192;
     }
+}
+
+.stat-modifier {
+    @extend .box;
+
+    color: black;
+    background-color: lightgray;
 }
 
 .vl {

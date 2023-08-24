@@ -12,13 +12,13 @@ import { AccordionComponent } from './components/accordion/accordion.component';
 import { EvaluationComponent } from './components/evaluation/evaluation.component';
 import { SpecialityComponent } from './components/speciality/speciality.component';
 import { DefenderListSaveButtonsComponent, SetupSaveButtonsComponent } from './components/save-button-list/save-buttons.component';
-import { ClickStopPropagationDirective } from './directives/stop-propagation.directive';
+import { StatModifierComponent } from './components/stat-modifier/stat-modifier.component';
 
 @NgModule({
   declarations: [
     PokeComponent,
-    ClickStopPropagationDirective,
     SpecialityComponent,
+    StatModifierComponent,
     DefenderListSaveButtonsComponent,
     SetupSaveButtonsComponent,
     EvaluationComponent,
